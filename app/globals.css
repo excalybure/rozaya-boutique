@@ -3,6 +3,9 @@
 @plugin "@tailwindcss/container-queries";
 @plugin "@tailwindcss/typography";
 
+/* Disable OS-driven dark mode - Rozaya Boutique is always light */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-burgundy: #4a1520;
   --color-burgundy-dark: #3a1018;
