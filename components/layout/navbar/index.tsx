@@ -1,7 +1,7 @@
 import CartModal from "components/cart/modal";
-import LogoSquare from "components/logo-square";
 import { getMenu } from "lib/shopify";
 import { Menu } from "lib/shopify/types";
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import MobileMenu from "./mobile-menu";
@@ -13,7 +13,7 @@ export async function Navbar() {
   const menu = await getMenu("next-js-frontend-header-menu");
 
   return (
-    <nav className="relative flex items-center justify-between p-4 lg:px-6">
+    <nav className="relative flex items-center justify-between border-b border-burgundy/10 bg-cream p-4 lg:px-6">
       <div className="block flex-none md:hidden">
         <Suspense fallback={null}>
           <MobileMenu menu={menu} />
@@ -22,14 +22,17 @@ export async function Navbar() {
       <div className="flex w-full items-center">
         <div className="flex w-full md:w-1/3">
           <Link
-            href="/"
-            prefetch={true}
             className="mr-2 flex w-full items-center justify-center md:w-auto lg:mr-6"
+            href="/"
           >
-            <LogoSquare />
-            <div className="ml-2 flex-none text-sm font-medium uppercase md:hidden lg:block">
-              {SITE_NAME}
-            </div>
+            <Image
+              src="/brand/logo-horizontal.png"
+              alt="Rozaya Boutique — Fine · Vintage · Collectible"
+              width={280}
+              height={80}
+              priority
+              className="h-10 w-auto object-contain md:h-12"
+            />
           </Link>
           {menu.length ? (
             <ul className="hidden gap-6 text-sm md:flex md:items-center">

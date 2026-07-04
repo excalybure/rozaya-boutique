@@ -34,15 +34,29 @@ const inter = Inter({
 export const metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: SITE_NAME!,
-    template: `%s | ${SITE_NAME}`,
+    default: "Rozaya Boutique · Fine, Vintage & Collectible Jewelry",
+    template: `%s · Rozaya Boutique`,
   },
-  robots: {
-    follow: true,
-    index: true,
+  description:
+    "A curated collection of fine, vintage, and collectible jewelry. Every piece hand-selected for craftsmanship, history, and enduring beauty.",
+  openGraph: {
+    title: "Rozaya Boutique",
+    description: "Fine · Vintage · Collectible",
+    url: baseUrl,
+    siteName: "Rozaya Boutique",
+    images: [
+      {
+        url: "/brand/logo-horizontal.png",
+        width: 1200,
+        height: 630,
+        alt: "Rozaya Boutique — Fine, Vintage & Collectible Jewelry",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
   },
+  robots: { follow: true, index: true },
 };
-
 export default async function RootLayout({
   children,
 }: {
