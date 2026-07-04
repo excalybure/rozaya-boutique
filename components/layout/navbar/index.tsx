@@ -28,10 +28,10 @@ export async function Navbar() {
             <Image
               src="/brand/logo-horizontal.png"
               alt="Rozaya Boutique — Fine · Vintage · Collectible"
-              width={280}
-              height={80}
+              width={780}
+              height={280}
               priority
-              className="h-10 w-auto object-contain md:h-12"
+              className="h-10 w-auto rounded-lg object-contain md:h-12"
             />
           </Link>
           {menu.length ? (

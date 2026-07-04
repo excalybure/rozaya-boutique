@@ -47,8 +47,8 @@ export const metadata = {
     images: [
       {
         url: "/brand/logo-horizontal.png",
-        width: 1200,
-        height: 630,
+        width: 780,
+        height: 280,
         alt: "Rozaya Boutique — Fine, Vintage & Collectible Jewelry",
       },
     ],
