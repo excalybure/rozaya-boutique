@@ -50,13 +50,9 @@ export default async function RootLayout({
 }) {
   // Don't await the fetch, pass the Promise to the context provider
   const cart = getCart();
-
+  const htmlClass = `${playfair.variable} ${cormorant.variable} ${inter.variable} bg-cream text-charcoal`;
   return (
-    <html
-      lang="en"
-      className={`${playfair.variable} ${cormorant.variable} ${inter.variable} bg-cream text-charcoal`}
-    >
-      {" "}
+    <html lang="en" className={htmlClass}>
       <body className="bg-neutral-50 text-black selection:bg-teal-300 dark:bg-neutral-900 dark:text-white dark:selection:bg-pink-500 dark:selection:text-white">
         <CartProvider cartPromise={cart}>
           <Navbar />
