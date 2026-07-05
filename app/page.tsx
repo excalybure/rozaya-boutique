@@ -1,6 +1,8 @@
 import { Carousel } from "components/carousel";
 import { ThreeItemGrid } from "components/grid/three-items";
+import { CategoryTiles } from "components/home/category-tiles";
 import Footer from "components/layout/footer";
+import { Suspense } from "react";
 
 export const metadata = {
   description:
@@ -14,6 +16,9 @@ export default function HomePage() {
   return (
     <>
       <ThreeItemGrid />
+      <Suspense>
+        <CategoryTiles />
+      </Suspense>
       <Carousel />
       <Footer />
     </>
