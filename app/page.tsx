@@ -1,6 +1,6 @@
 import { Carousel } from "components/carousel";
-import { ThreeItemGrid } from "components/grid/three-items";
 import { CategoryTiles } from "components/home/category-tiles";
+import { Hero } from "components/home/hero";
 import Footer from "components/layout/footer";
 import { Suspense } from "react";
 
@@ -15,7 +15,7 @@ export const metadata = {
 export default function HomePage() {
   return (
     <>
-      <ThreeItemGrid />
+      <Hero />
       <Suspense>
         <CategoryTiles />
       </Suspense>
