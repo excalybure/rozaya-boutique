@@ -26,10 +26,11 @@
 
 @layer base {
   html {
-    background: var(--color-cream);
+    background: var(--color-cream-dark);
     color: var(--color-charcoal);
   }
   body {
+    background: var(--color-cream-dark);
     font-family: var(--font-cormorant), Georgia, serif;
   }
   h1,

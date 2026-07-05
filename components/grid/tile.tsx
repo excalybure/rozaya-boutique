@@ -156,7 +156,7 @@ export function GridTileImage({
   const browseSimilarHref = getBrowseSimilarHref(product);
   const image = props.src ? (
     <div
-      className={clsx("relative w-full overflow-hidden bg-cream-dark", {
+      className={clsx("relative w-full overflow-hidden bg-cream", {
         "aspect-square": label,
         "h-full": !label,
       })}
@@ -187,7 +187,7 @@ export function GridTileImage({
     return (
       <div
         className={clsx(
-          "group w-full overflow-hidden rounded-md border border-transparent bg-cream transition-all duration-300 hover:border-burgundy/20 hover:shadow-lg",
+          "group w-full overflow-hidden rounded-md border border-burgundy/10 bg-cream shadow-sm transition-all duration-300 hover:border-burgundy/25 hover:shadow-md",
           {
             "border-burgundy/40": active,
           },
@@ -195,7 +195,7 @@ export function GridTileImage({
       >
         {image}
 
-        <div className="space-y-1 p-3">
+        <div className="space-y-1 p-4">
           <h3 className="line-clamp-2 font-serif text-sm leading-snug text-charcoal md:text-base">
             {label.title}
           </h3>
