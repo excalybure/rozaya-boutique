@@ -56,6 +56,21 @@ const productFragment = /* GraphQL */ `
     }
     tags
     updatedAt
+    metafields(
+      identifiers: [
+        { namespace: "custom", key: "metal" }
+        { namespace: "custom", key: "primary_stone" }
+        { namespace: "custom", key: "carat_total" }
+        { namespace: "custom", key: "era" }
+        { namespace: "custom", key: "circa" }
+        { namespace: "custom", key: "maker" }
+        { namespace: "custom", key: "provenance" }
+      ]
+    ) {
+      key
+      value
+      type
+    }
   }
   ${imageFragment}
   ${seoFragment}

@@ -71,7 +71,14 @@ export type Page = {
 export type Product = Omit<ShopifyProduct, "variants" | "images"> & {
   variants: ProductVariant[];
   images: Image[];
+  metafields: ProductMetafield[];
 };
+
+export type ProductMetafield = {
+  key: string;
+  value: string;
+  type: string;
+} | null;
 
 export type ProductOption = {
   id: string;
@@ -133,6 +140,7 @@ export type ShopifyProduct = {
   seo: SEO;
   tags: string[];
   updatedAt: string;
+  metafields: ProductMetafield[];
 };
 
 export type ShopifyCartOperation = {

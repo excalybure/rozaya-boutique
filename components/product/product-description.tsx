@@ -2,9 +2,16 @@ import { AddToCart } from "components/cart/add-to-cart";
 import Price from "components/price";
 import Prose from "components/prose";
 import { Product } from "lib/shopify/types";
+import type { ReactNode } from "react";
 import { VariantSelector } from "./variant-selector";
 
-export function ProductDescription({ product }: { product: Product }) {
+export function ProductDescription({
+  children,
+  product,
+}: {
+  children?: ReactNode;
+  product: Product;
+}) {
   return (
     <>
       <div className="mb-6 flex flex-col border-b pb-6 dark:border-neutral-700">
@@ -23,6 +30,7 @@ export function ProductDescription({ product }: { product: Product }) {
           html={product.descriptionHtml}
         />
       ) : null}
+      {children}
       <AddToCart product={product} />
     </>
   );
