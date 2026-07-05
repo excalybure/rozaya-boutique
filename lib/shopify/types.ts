@@ -40,6 +40,32 @@ export type Collection = ShopifyCollection & {
   path: string;
 };
 
+export type CollectionProductsResult = {
+  products: Product[];
+  filters: Filter[];
+};
+
+export type Filter = {
+  id: string;
+  label: string;
+  type: string;
+  values: FilterValue[];
+};
+
+export type FilterInput =
+  | string
+  | number
+  | boolean
+  | null
+  | Record<string, unknown>;
+
+export type FilterValue = {
+  id: string;
+  label: string;
+  count: number;
+  input: FilterInput;
+};
+
 export type Image = {
   url: string;
   altText: string;
@@ -211,11 +237,14 @@ export type ShopifyCollectionOperation = {
 export type ShopifyCollectionProductsOperation = {
   data: {
     collection: {
-      products: Connection<ShopifyProduct>;
+      products: Connection<ShopifyProduct> & {
+        filters: Filter[];
+      };
     };
   };
   variables: {
     handle: string;
+    filters?: Record<string, unknown>[];
     reverse?: boolean;
     sortKey?: string;
   };

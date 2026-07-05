@@ -34,6 +34,7 @@ import {
 import {
   Cart,
   Collection,
+  CollectionProductsResult,
   Connection,
   Image,
   Menu,
@@ -141,7 +142,7 @@ const reshapeCart = (cart: ShopifyCart): Cart => {
 };
 
 const reshapeCollection = (
-  collection: ShopifyCollection
+  collection: ShopifyCollection,
 ): Collection | undefined => {
   if (!collection) {
     return undefined;
@@ -183,7 +184,7 @@ const reshapeImages = (images: Connection<Image>, productTitle: string) => {
 
 const reshapeProduct = (
   product: ShopifyProduct,
-  filterHiddenProducts: boolean = true
+  filterHiddenProducts: boolean = true,
 ) => {
   if (
     !product ||
@@ -226,7 +227,7 @@ export async function createCart(): Promise<Cart> {
 }
 
 export async function addToCart(
-  lines: { merchandiseId: string; quantity: number }[]
+  lines: { merchandiseId: string; quantity: number }[],
 ): Promise<Cart> {
   const cartId = (await cookies()).get("cartId")?.value!;
   const res = await shopifyFetch<ShopifyAddToCartOperation>({
@@ -253,7 +254,7 @@ export async function removeFromCart(lineIds: string[]): Promise<Cart> {
 }
 
 export async function updateCart(
-  lines: { id: string; merchandiseId: string; quantity: number }[]
+  lines: { id: string; merchandiseId: string; quantity: number }[],
 ): Promise<Cart> {
   const cartId = (await cookies()).get("cartId")?.value!;
   const res = await shopifyFetch<ShopifyUpdateCartOperation>({
@@ -292,7 +293,7 @@ export async function getCart(): Promise<Cart | undefined> {
 }
 
 export async function getCollection(
-  handle: string
+  handle: string,
 ): Promise<Collection | undefined> {
   "use cache";
   cacheTag(TAGS.collections);
@@ -310,28 +311,55 @@ export async function getCollection(
 
 export async function getCollectionProducts({
   collection,
+  filters,
   reverse,
   sortKey,
 }: {
   collection: string;
+  filters?: Record<string, unknown>[];
   reverse?: boolean;
   sortKey?: string;
 }): Promise<Product[]> {
+  const { products } = await getCollectionProductsWithFilters({
+    collection,
+    filters,
+    reverse,
+    sortKey,
+  });
+
+  return products;
+}
+
+export async function getCollectionProductsWithFilters({
+  collection,
+  filters,
+  reverse,
+  sortKey,
+}: {
+  collection: string;
+  filters?: Record<string, unknown>[];
+  reverse?: boolean;
+  sortKey?: string;
+}): Promise<CollectionProductsResult> {
   "use cache";
   cacheTag(TAGS.collections, TAGS.products);
   cacheLife("days");
 
   if (!endpoint) {
     console.log(
-      `Skipping getCollectionProducts for '${collection}' - Shopify not configured`
+      `Skipping getCollectionProducts for '${collection}' - Shopify not configured`,
     );
-    return [];
+    return {
+      products: [],
+      filters: [],
+    };
   }
 
   const res = await shopifyFetch<ShopifyCollectionProductsOperation>({
     query: getCollectionProductsQuery,
     variables: {
       handle: collection,
+      filters,
       reverse,
       sortKey: sortKey === "CREATED_AT" ? "CREATED" : sortKey,
     },
@@ -339,12 +367,18 @@ export async function getCollectionProducts({
 
   if (!res.body.data.collection) {
     console.log(`No collection found for \`${collection}\``);
-    return [];
+    return {
+      products: [],
+      filters: [],
+    };
   }
 
-  return reshapeProducts(
-    removeEdgesAndNodes(res.body.data.collection.products)
-  );
+  const productConnection = res.body.data.collection.products;
+
+  return {
+    products: reshapeProducts(removeEdgesAndNodes(productConnection)),
+    filters: productConnection.filters ?? [],
+  };
 }
 
 export async function getCollections(): Promise<Collection[]> {
@@ -388,7 +422,7 @@ export async function getCollections(): Promise<Collection[]> {
     // Filter out the `hidden` collections.
     // Collections that start with `hidden-*` need to be hidden on the search page.
     ...reshapeCollections(shopifyCollections).filter(
-      (collection) => !collection.handle.startsWith("hidden")
+      (collection) => !collection.handle.startsWith("hidden"),
     ),
   ];
 
@@ -461,7 +495,7 @@ export async function getProduct(handle: string): Promise<Product | undefined> {
 }
 
 export async function getProductRecommendations(
-  productId: string
+  productId: string,
 ): Promise<Product[]> {
   "use cache";
   cacheTag(TAGS.products);
