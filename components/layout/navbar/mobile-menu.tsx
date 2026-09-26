@@ -35,7 +35,7 @@ export default function MobileMenu({ menu }: { menu: Menu[] }) {
       <button
         onClick={openMobileMenu}
         aria-label="Open mobile menu"
-        className="flex h-11 w-11 items-center justify-center rounded-md border border-neutral-200 text-black transition-colors md:hidden dark:border-neutral-700 dark:text-white"
+        className="flex h-10 w-10 items-center justify-center border border-burgundy/15 text-burgundy transition-colors lg:hidden"
       >
         <Bars3Icon className="h-4" />
       </button>
@@ -61,16 +61,29 @@ export default function MobileMenu({ menu }: { menu: Menu[] }) {
             leaveFrom="translate-x-0"
             leaveTo="translate-x-[-100%]"
           >
-            <Dialog.Panel className="fixed bottom-0 left-0 right-0 top-0 flex h-full w-full flex-col bg-white pb-6 dark:bg-black">
-              <div className="p-4">
-                <button
-                  className="mb-4 flex h-11 w-11 items-center justify-center rounded-md border border-neutral-200 text-black transition-colors dark:border-neutral-700 dark:text-white"
-                  onClick={closeMobileMenu}
-                  aria-label="Close mobile menu"
-                >
-                  <XMarkIcon className="h-6" />
-                </button>
-
+            <Dialog.Panel className="fixed bottom-0 left-0 right-0 top-0 flex h-full w-full flex-col overflow-y-auto bg-cream pb-6 text-burgundy">
+              <div className="p-5 sm:p-8">
+                <div className="mb-8 flex items-center justify-between border-b border-burgundy/10 pb-5">
+                  <Link
+                    href="/"
+                    onClick={closeMobileMenu}
+                    className="flex flex-col"
+                  >
+                    <span className="font-heading text-2xl tracking-[0.1em] text-burgundy">
+                      ROZAYA
+                    </span>
+                    <span className="font-sans text-[8px] uppercase tracking-[0.3em] text-gold-dark">
+                      Boutique · Fine · Vintage · Collectible
+                    </span>
+                  </Link>
+                  <button
+                    className="flex h-10 w-10 items-center justify-center border border-burgundy/15 text-burgundy"
+                    onClick={closeMobileMenu}
+                    aria-label="Close mobile menu"
+                  >
+                    <XMarkIcon className="h-5" />
+                  </button>
+                </div>
                 <div className="mb-4 w-full">
                   <Suspense fallback={<SearchSkeleton />}>
                     <Search />
@@ -80,7 +93,7 @@ export default function MobileMenu({ menu }: { menu: Menu[] }) {
                   <ul className="flex w-full flex-col">
                     {menu.map((item: Menu) => (
                       <li
-                        className="py-2 text-xl text-black transition-colors hover:text-neutral-500 dark:text-white"
+                        className="border-b border-burgundy/10 py-4 font-heading text-2xl text-burgundy transition-colors hover:text-gold-dark"
                         key={item.title}
                       >
                         <Link

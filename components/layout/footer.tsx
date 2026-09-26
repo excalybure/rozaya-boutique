@@ -1,76 +1,82 @@
+import { categories } from "lib/categories";
 import Link from "next/link";
 
-import FooterMenu from "components/layout/footer-menu";
-import LogoSquare from "components/logo-square";
-import { getMenu } from "lib/shopify";
-import { Suspense } from "react";
+const shopLinks = [
+  { title: "Shop all jewelry", href: "/search" },
+  ...categories.map((category) => ({
+    title: category.title,
+    href: category.href,
+  })),
+];
 
-const { COMPANY_NAME, SITE_NAME } = process.env;
-
-export default async function Footer() {
-  const currentYear = new Date().getFullYear();
-  const copyrightDate = 2023 + (currentYear > 2023 ? `-${currentYear}` : "");
-  const skeleton =
-    "w-full h-6 animate-pulse rounded-sm bg-neutral-200 dark:bg-neutral-700";
-  const menu = await getMenu("next-js-frontend-footer-menu");
-  const copyrightName = COMPANY_NAME || SITE_NAME || "";
+export default function Footer() {
+  const year = new Date().getFullYear();
 
   return (
-    <footer className="text-sm text-neutral-500 dark:text-neutral-400">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 border-t border-neutral-200 px-6 py-12 text-sm md:flex-row md:gap-12 md:px-4 min-[1320px]:px-0 dark:border-neutral-700">
+    <footer className="bg-burgundy text-cream">
+      <div className="mx-auto grid max-w-7xl gap-12 px-6 py-14 sm:px-10 md:grid-cols-[1.2fr_0.8fr_0.8fr] md:gap-16 lg:px-16 lg:py-20">
         <div>
-          <Link
-            className="flex items-center gap-2 text-black md:pt-1 dark:text-white"
-            href="/"
-          >
-            <LogoSquare size="sm" />
-            <span className="uppercase">{SITE_NAME}</span>
+          <Link href="/" className="inline-flex flex-col">
+            <span className="font-heading text-3xl tracking-[0.1em] text-gold-light">
+              ROZAYA
+            </span>
+            <span className="mt-1 font-sans text-[9px] uppercase tracking-[0.34em] text-cream/75">
+              Boutique · Fine · Vintage · Collectible
+            </span>
           </Link>
+          <p className="mt-6 max-w-sm font-serif text-lg leading-7 text-cream/75">
+            A considered collection for people who choose with feeling and keep
+            what they love.
+          </p>
         </div>
-        <Suspense
-          fallback={
-            <div className="flex h-[188px] w-[200px] flex-col gap-2">
-              <div className={skeleton} />
-              <div className={skeleton} />
-              <div className={skeleton} />
-              <div className={skeleton} />
-              <div className={skeleton} />
-              <div className={skeleton} />
-            </div>
-          }
-        >
-          <FooterMenu menu={menu} />
-        </Suspense>
-        <div className="md:ml-auto">
-          <a
-            className="flex h-8 w-max flex-none items-center justify-center rounded-md border border-neutral-200 bg-white text-xs text-black dark:border-neutral-700 dark:bg-black dark:text-white"
-            aria-label="Deploy on Vercel"
-            href="https://vercel.com/templates/next.js/nextjs-commerce"
-          >
-            <span className="px-3">▲</span>
-            <hr className="h-full border-r border-neutral-200 dark:border-neutral-700" />
-            <span className="px-3">Deploy</span>
-          </a>
+
+        <div>
+          <h2 className="font-sans text-[10px] font-semibold uppercase tracking-[0.24em] text-gold-light">
+            Explore
+          </h2>
+          <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 md:grid-cols-1 xl:grid-cols-2">
+            {shopLinks.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className="font-sans text-sm text-cream/75 transition-colors hover:text-gold-light"
+                >
+                  {link.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h2 className="font-sans text-[10px] font-semibold uppercase tracking-[0.24em] text-gold-light">
+            Rozaya
+          </h2>
+          <ul className="mt-5 space-y-3">
+            <li>
+              <Link
+                href="/#story"
+                className="font-sans text-sm text-cream/75 transition-colors hover:text-gold-light"
+              >
+                Our point of view
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/#collections"
+                className="font-sans text-sm text-cream/75 transition-colors hover:text-gold-light"
+              >
+                The collection
+              </Link>
+            </li>
+          </ul>
         </div>
       </div>
-      <div className="border-t border-neutral-200 py-6 text-sm dark:border-neutral-700">
-        <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-1 px-4 md:flex-row md:gap-0 md:px-4 min-[1320px]:px-0">
-          <p>
-            &copy; {copyrightDate} {copyrightName}
-            {copyrightName.length && !copyrightName.endsWith(".")
-              ? "."
-              : ""}{" "}
-            All rights reserved.
-          </p>
-          <hr className="mx-4 hidden h-4 w-[1px] border-l border-neutral-400 md:inline-block" />
-          <p>
-            <a href="https://github.com/vercel/commerce">View the source</a>
-          </p>
-          <p className="md:ml-auto">
-            <a href="https://vercel.com" className="text-black dark:text-white">
-              Created by ▲ Vercel
-            </a>
-          </p>
+
+      <div className="border-t border-cream/15 px-6 py-5 sm:px-10 lg:px-16">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 font-sans text-[10px] uppercase tracking-[0.16em] text-cream/55 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {year} Rozaya Boutique. All rights reserved.</p>
+          <p>Made for a life well adorned.</p>
         </div>
       </div>
     </footer>

@@ -3,12 +3,12 @@
 @plugin "@tailwindcss/container-queries";
 @plugin "@tailwindcss/typography";
 
-/* Disable OS-driven dark mode - Rozaya Boutique is always light */
+/* Keep the storefront's warm palette consistent with the brand. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --color-burgundy: #4a1520;
-  --color-burgundy-dark: #3a1018;
+  --color-burgundy-dark: #351018;
   --color-burgundy-light: #6a1f2e;
   --color-gold: #b8860b;
   --color-gold-light: #d4a531;
@@ -24,40 +24,49 @@
   --font-sans: var(--font-inter);
 }
 
-@layer base {
-  html {
-    background: var(--color-cream-dark);
-    color: var(--color-charcoal);
-  }
-  body {
-    background: var(--color-cream-dark);
-    font-family: var(--font-cormorant), Georgia, serif;
-  }
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: var(--font-playfair), Georgia, serif;
-    color: var(--color-burgundy);
-  }
+:root {
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 1.5rem;
+  background: var(--color-cream);
+  color: var(--color-charcoal);
+}
+
+body {
+  min-height: 100vh;
+  background: var(--color-cream);
+  color: var(--color-charcoal);
+  font-family: var(--font-inter), Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--color-burgundy);
+  font-family: var(--font-playfair), Georgia, serif;
+  font-weight: 400;
+}
+
+::selection {
+  background: rgb(184 134 11 / 24%);
+  color: var(--color-burgundy-dark);
+}
+
+a,
+input,
+button {
+  @apply focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-cream;
 }
 
 @supports (font: -apple-system-body) and (-webkit-appearance: none) {
   img[loading="lazy"] {
     clip-path: inset(0.6px);
   }
-}
-
-a,
-input,
-button {
-  @apply focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-neutral-600 dark:focus-visible:ring-offset-neutral-900;
 }

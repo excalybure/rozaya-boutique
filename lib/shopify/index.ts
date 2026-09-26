@@ -64,6 +64,7 @@ const domain = process.env.SHOPIFY_STORE_DOMAIN
   : "";
 const endpoint = domain ? `${domain}${SHOPIFY_GRAPHQL_API_ENDPOINT}` : "";
 const key = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN!;
+export const isShopifyConfigured = Boolean(endpoint && key);
 
 type ExtractVariables<T> = T extends { variables: object }
   ? T["variables"]
@@ -273,6 +274,10 @@ export async function getCart(): Promise<Cart | undefined> {
   cacheTag(TAGS.cart);
   cacheLife("seconds");
 
+  if (!isShopifyConfigured) {
+    return undefined;
+  }
+
   const cartId = (await cookies()).get("cartId")?.value;
 
   if (!cartId) {
@@ -298,6 +303,10 @@ export async function getCollection(
   "use cache";
   cacheTag(TAGS.collections);
   cacheLife("days");
+
+  if (!isShopifyConfigured) {
+    return undefined;
+  }
 
   const res = await shopifyFetch<ShopifyCollectionOperation>({
     query: getCollectionQuery,
@@ -343,9 +352,11 @@ export async function getCollectionProductsWithFilters({
 }): Promise<CollectionProductsResult> {
   "use cache";
   cacheTag(TAGS.collections, TAGS.products);
-  cacheLife("days");
+  cacheLife(
+    collection === "hidden-homepage-featured-items" ? "minutes" : "days",
+  );
 
-  if (!endpoint) {
+  if (!isShopifyConfigured) {
     console.log(
       `Skipping getCollectionProducts for '${collection}' - Shopify not configured`,
     );
@@ -386,7 +397,7 @@ export async function getCollections(): Promise<Collection[]> {
   cacheTag(TAGS.collections);
   cacheLife("days");
 
-  if (!endpoint) {
+  if (!isShopifyConfigured) {
     console.log("Skipping getCollections - Shopify not configured");
     return [
       {
@@ -419,10 +430,11 @@ export async function getCollections(): Promise<Collection[]> {
       path: "/search",
       updatedAt: new Date().toISOString(),
     },
-    // Filter out the `hidden` collections.
-    // Collections that start with `hidden-*` need to be hidden on the search page.
+    // Keep internal and homepage collections out of the shopping navigation.
     ...reshapeCollections(shopifyCollections).filter(
-      (collection) => !collection.handle.startsWith("hidden"),
+      (collection) =>
+        !collection.handle.startsWith("hidden") &&
+        collection.handle !== "frontpage",
     ),
   ];
 
@@ -434,7 +446,7 @@ export async function getMenu(handle: string): Promise<Menu[]> {
   cacheTag(TAGS.collections);
   cacheLife("days");
 
-  if (!endpoint) {
+  if (!isShopifyConfigured) {
     console.log(`Skipping getMenu for '${handle}' - Shopify not configured`);
     return [];
   }
@@ -457,7 +469,11 @@ export async function getMenu(handle: string): Promise<Menu[]> {
   );
 }
 
-export async function getPage(handle: string): Promise<Page> {
+export async function getPage(handle: string): Promise<Page | undefined> {
+  if (!isShopifyConfigured) {
+    return undefined;
+  }
+
   const res = await shopifyFetch<ShopifyPageOperation>({
     query: getPageQuery,
     variables: { handle },
@@ -467,6 +483,10 @@ export async function getPage(handle: string): Promise<Page> {
 }
 
 export async function getPages(): Promise<Page[]> {
+  if (!isShopifyConfigured) {
+    return [];
+  }
+
   const res = await shopifyFetch<ShopifyPagesOperation>({
     query: getPagesQuery,
   });
@@ -479,7 +499,7 @@ export async function getProduct(handle: string): Promise<Product | undefined> {
   cacheTag(TAGS.products);
   cacheLife("days");
 
-  if (!endpoint) {
+  if (!isShopifyConfigured) {
     console.log(`Skipping getProduct for '${handle}' - Shopify not configured`);
     return undefined;
   }
@@ -500,6 +520,10 @@ export async function getProductRecommendations(
   "use cache";
   cacheTag(TAGS.products);
   cacheLife("days");
+
+  if (!isShopifyConfigured) {
+    return [];
+  }
 
   const res = await shopifyFetch<ShopifyProductRecommendationsOperation>({
     query: getProductRecommendationsQuery,
@@ -523,6 +547,10 @@ export async function getProducts({
   "use cache";
   cacheTag(TAGS.products);
   cacheLife("days");
+
+  if (!isShopifyConfigured) {
+    return [];
+  }
 
   const res = await shopifyFetch<ShopifyProductsOperation>({
     query: getProductsQuery,

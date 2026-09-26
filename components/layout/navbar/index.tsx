@@ -1,64 +1,88 @@
 import CartModal from "components/cart/modal";
-import { getMenu } from "lib/shopify";
+import { categories } from "lib/categories";
 import { Menu } from "lib/shopify/types";
+import { ShoppingBagIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import MobileMenu from "./mobile-menu";
 import Search, { SearchSkeleton } from "./search";
 
-const { SITE_NAME } = process.env;
+const shopAll: Menu = { title: "Shop all", path: "/search" };
+const story: Menu = { title: "Our story", path: "/#story" };
+const categoryMenu: Menu[] = categories.map((category) => ({
+  title: category.title,
+  path: category.href,
+}));
+const mobileMenu: Menu[] = [shopAll, ...categoryMenu, story];
 
-export async function Navbar() {
-  const menu = await getMenu("next-js-frontend-header-menu");
+export function Navbar() {
+  const shopifyConfigured = Boolean(
+    process.env.SHOPIFY_STORE_DOMAIN &&
+      process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN,
+  );
 
   return (
-    <nav className="relative flex items-center justify-between border-b border-burgundy/10 bg-cream p-4 lg:px-6">
-      <div className="block flex-none md:hidden">
-        <Suspense fallback={null}>
-          <MobileMenu menu={menu} />
-        </Suspense>
+    <header>
+      <div className="bg-burgundy px-4 py-2 text-center text-cream">
+        <p className="font-sans text-[9px] font-medium uppercase tracking-[0.22em] sm:text-[10px]">
+          A considered collection of fine, vintage & collectible jewelry
+        </p>
       </div>
-      <div className="flex w-full items-center">
-        <div className="flex w-full md:w-1/3">
-          <Link
-            className="mr-2 flex w-full items-center justify-center md:w-auto lg:mr-6"
-            href="/"
-          >
-            <Image
-              src="/brand/logo-horizontal.png"
-              alt="Rozaya Boutique — Fine · Vintage · Collectible"
-              width={780}
-              height={280}
-              priority
-              className="h-10 w-auto rounded-lg object-contain md:h-12"
-            />
-          </Link>
-          {menu.length ? (
-            <ul className="hidden gap-6 text-sm md:flex md:items-center">
-              {menu.map((item: Menu) => (
+      <nav className="border-b border-burgundy/10 bg-cream px-4 sm:px-6 lg:px-10">
+        <div className="mx-auto flex min-h-[76px] max-w-[1440px] items-center justify-between gap-3">
+          <div className="flex items-center gap-3 md:w-[42%]">
+            <div className="lg:hidden">
+              <Suspense fallback={null}>
+                <MobileMenu menu={mobileMenu} />
+              </Suspense>
+            </div>
+            <Link href="/" className="inline-flex shrink-0 items-center">
+              <Image
+                src="/brand/logo-horizontal-cream.png"
+                alt="Rozaya Boutique — Fine · Vintage · Collectible"
+                width={780}
+                height={280}
+                priority
+                className="h-10 w-auto object-contain sm:h-12"
+              />
+            </Link>
+            <ul className="ml-5 hidden items-center gap-5 lg:flex xl:gap-7">
+              {[shopAll, story].map((item) => (
                 <li key={item.title}>
                   <Link
                     href={item.path}
-                    prefetch={true}
-                    className="text-neutral-500 underline-offset-4 hover:text-black hover:underline dark:text-neutral-400 dark:hover:text-neutral-300"
+                    className="whitespace-nowrap font-sans text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal/75 underline-offset-8 transition-colors hover:text-burgundy hover:underline"
                   >
                     {item.title}
                   </Link>
                 </li>
               ))}
             </ul>
-          ) : null}
+          </div>
+
+          <div className="hidden w-[34%] justify-center md:flex">
+            <Suspense fallback={<SearchSkeleton />}>
+              <Search />
+            </Suspense>
+          </div>
+
+          <div className="flex justify-end md:w-[24%]">
+            {shopifyConfigured ? (
+              <CartModal />
+            ) : (
+              <Link
+                href="/search"
+                className="inline-flex min-h-11 items-center gap-2 font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-burgundy"
+              >
+                <ShoppingBagIcon className="h-5 w-5" aria-hidden="true" />
+                <span className="hidden sm:inline">Shop the edit</span>
+                <span className="sm:hidden">Shop</span>
+              </Link>
+            )}
+          </div>
         </div>
-        <div className="hidden justify-center md:flex md:w-1/3">
-          <Suspense fallback={<SearchSkeleton />}>
-            <Search />
-          </Suspense>
-        </div>
-        <div className="flex justify-end md:w-1/3">
-          <CartModal />
-        </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 }

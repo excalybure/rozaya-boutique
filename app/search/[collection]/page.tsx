@@ -1,11 +1,15 @@
 import Filters from "components/layout/search/filters";
-import { getCollection, getCollectionProductsWithFilters } from "lib/shopify";
-import { Metadata } from "next";
-import { notFound } from "next/navigation";
-
 import Grid from "components/grid";
 import ProductGridItems from "components/layout/product-grid-items";
 import { defaultSort, sorting } from "lib/constants";
+import {
+  getCollection,
+  getCollectionProductsWithFilters,
+  isShopifyConfigured,
+} from "lib/shopify";
+import { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
 type SearchParams = { [key: string]: string | string[] | undefined };
 
@@ -58,20 +62,30 @@ function getProductFilters(searchParams: SearchParams) {
   return filters;
 }
 
+function titleFromHandle(handle: string) {
+  return handle
+    .split("-")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export async function generateMetadata(props: {
   params: Promise<{ collection: string }>;
 }): Promise<Metadata> {
   const params = await props.params;
   const collection = await getCollection(params.collection);
 
-  if (!collection) return notFound();
+  if (!collection && isShopifyConfigured) return notFound();
+
+  const title = collection?.title || titleFromHandle(params.collection);
 
   return {
-    title: collection.seo?.title || collection.title,
+    title: collection?.seo?.title || title,
     description:
-      collection.seo?.description ||
-      collection.description ||
-      `${collection.title} products`,
+      collection?.seo?.description ||
+      collection?.description ||
+      `Explore ${title.toLowerCase()} at Rozaya Boutique.`,
   };
 }
 
@@ -81,6 +95,10 @@ export default async function CategoryPage(props: {
 }) {
   const searchParams = ((await props.searchParams) ?? {}) as SearchParams;
   const params = await props.params;
+  const collection = await getCollection(params.collection);
+
+  if (!collection && isShopifyConfigured) notFound();
+
   const { sort } = searchParams as { [key: string]: string };
   const { sortKey, reverse } =
     sorting.find((item) => item.slug === sort) || defaultSort;
@@ -90,18 +108,49 @@ export default async function CategoryPage(props: {
     sortKey,
     reverse,
   });
+  const title = collection?.title || titleFromHandle(params.collection);
 
   return (
-    <section className="flex flex-col gap-6 md:flex-row">
-      <Filters filters={filters} />
-      <div className="min-w-0 flex-1">
-        {products.length === 0 ? (
-          <p className="py-3 text-lg">{`No products found in this collection`}</p>
-        ) : (
-          <Grid>
-            <ProductGridItems products={products} />
-          </Grid>
-        )}
+    <section className="py-4 lg:py-0">
+      <header className="mb-10 border-b border-burgundy/15 pb-8 sm:mb-12 sm:pb-10">
+        <p className="mb-3 font-sans text-[10px] font-semibold uppercase tracking-[0.26em] text-gold-dark">
+          Shop by category
+        </p>
+        <h1 className="font-heading text-4xl tracking-[-0.03em] text-burgundy sm:text-5xl">
+          {title}
+        </h1>
+        {collection?.description ? (
+          <p className="mt-4 max-w-2xl font-sans text-sm leading-7 text-charcoal/70">
+            {collection.description}
+          </p>
+        ) : null}
+      </header>
+
+      <div className="flex flex-col gap-8 md:flex-row">
+        {products.length ? <Filters filters={filters} /> : null}
+        <div className="min-w-0 flex-1">
+          {products.length ? (
+            <Grid>
+              <ProductGridItems products={products} />
+            </Grid>
+          ) : (
+            <div className="max-w-xl py-6">
+              <h2 className="font-heading text-2xl text-burgundy">
+                The collection is being prepared.
+              </h2>
+              <p className="mt-3 font-sans text-sm leading-7 text-charcoal/70">
+                Browse the full collection or come back soon to discover what
+                has been selected.
+              </p>
+              <Link
+                href="/search"
+                className="mt-6 inline-flex min-h-11 items-center bg-burgundy px-6 font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-cream transition-colors hover:bg-burgundy-light"
+              >
+                Shop all jewelry
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

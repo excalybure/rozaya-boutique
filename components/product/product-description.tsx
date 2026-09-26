@@ -14,9 +14,11 @@ export function ProductDescription({
 }) {
   return (
     <>
-      <div className="mb-6 flex flex-col border-b pb-6 dark:border-neutral-700">
-        <h1 className="mb-2 text-5xl font-medium">{product.title}</h1>
-        <div className="mr-auto w-auto rounded-full bg-blue-600 p-2 text-sm text-white">
+      <div className="mb-6 flex flex-col border-b border-burgundy/15 pb-6">
+        <h1 className="mb-3 font-heading text-4xl leading-tight text-burgundy sm:text-5xl">
+          {product.title}
+        </h1>
+        <div className="w-fit font-serif text-2xl text-burgundy">
           <Price
             amount={product.priceRange.maxVariantPrice.amount}
             currencyCode={product.priceRange.maxVariantPrice.currencyCode}
@@ -26,7 +28,7 @@ export function ProductDescription({
       <VariantSelector options={product.options} variants={product.variants} />
       {product.descriptionHtml ? (
         <Prose
-          className="mb-6 text-sm leading-tight dark:text-white/[60%]"
+          className="mb-6"
           html={product.descriptionHtml}
         />
       ) : null}

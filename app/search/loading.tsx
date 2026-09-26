@@ -11,7 +11,7 @@ export default function Loading() {
             return (
               <Grid.Item
                 key={index}
-                className="animate-pulse bg-neutral-100 dark:bg-neutral-800"
+                className="animate-pulse border border-burgundy/10 bg-cream-dark"
               />
             );
           })}

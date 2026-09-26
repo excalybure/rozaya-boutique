@@ -1,6 +1,6 @@
 import { CartProvider } from "components/cart/cart-context";
+import Footer from "components/layout/footer";
 import { Navbar } from "components/layout/navbar";
-import { WelcomeToast } from "components/welcome-toast";
 import { getCart } from "lib/shopify";
 import { baseUrl } from "lib/utils";
 import { Cormorant_Garamond, Inter, Playfair_Display } from "next/font/google";
@@ -64,17 +64,15 @@ export default async function RootLayout({
 }) {
   // Don't await the fetch, pass the Promise to the context provider
   const cart = getCart();
-  const htmlClass = `${playfair.variable} ${cormorant.variable} ${inter.variable} bg-cream-dark text-charcoal`;
+  const htmlClass = `${playfair.variable} ${cormorant.variable} ${inter.variable} bg-cream text-charcoal`;
   return (
     <html lang="en" className={htmlClass}>
-      <body className="bg-cream-dark text-charcoal selection:bg-gold/30">
+      <body className="bg-cream text-charcoal selection:bg-gold/30">
         <CartProvider cartPromise={cart}>
           <Navbar />
-          <main>
-            {children}
-            <Toaster closeButton />
-            <WelcomeToast />
-          </main>
+          <main>{children}</main>
+          <Footer />
+          <Toaster closeButton />
         </CartProvider>
       </body>
     </html>
