@@ -39,6 +39,9 @@ export const metadata = {
   },
   description:
     "A curated collection of fine, vintage, and collectible jewelry. Every piece hand-selected for craftsmanship, history, and enduring beauty.",
+  icons: {
+    icon: [{ url: "/brand/monogram.svg", type: "image/svg+xml", sizes: "any" }],
+  },
   openGraph: {
     title: "Rozaya Boutique",
     description: "Fine · Vintage · Collectible",

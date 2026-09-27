@@ -30,22 +30,35 @@ export function Navbar() {
         </p>
       </div>
       <nav className="border-b border-burgundy/10 bg-cream px-4 sm:px-6 lg:px-10">
-        <div className="mx-auto flex min-h-[76px] max-w-[1440px] items-center justify-between gap-3">
+        <div className="mx-auto flex min-h-[84px] max-w-[1440px] items-center justify-between gap-3 sm:min-h-[92px]">
           <div className="flex items-center gap-3 md:w-[42%]">
             <div className="lg:hidden">
               <Suspense fallback={null}>
                 <MobileMenu menu={mobileMenu} />
               </Suspense>
             </div>
-            <Link href="/" className="inline-flex shrink-0 items-center">
+            <Link
+              href="/"
+              aria-label="Rozaya Boutique home"
+              className="inline-flex shrink-0 items-center gap-2 sm:gap-3"
+            >
               <Image
-                src="/brand/logo-horizontal-cream.png"
-                alt="Rozaya Boutique — Fine · Vintage · Collectible"
-                width={780}
-                height={280}
+                src="/brand/monogram.svg"
+                alt=""
+                width={64}
+                height={64}
                 priority
-                className="h-10 w-auto object-contain sm:h-12"
+                unoptimized
+                className="h-11 w-11 shrink-0 sm:h-14 sm:w-14"
               />
+              <span className="flex flex-col">
+                <span className="font-heading text-[26px] leading-none tracking-[0.055em] text-burgundy sm:text-[34px]">
+                  ROZAYA
+                </span>
+                <span className="mt-1 font-sans text-[10px] font-medium uppercase tracking-[0.32em] text-gold-dark sm:text-[11px]">
+                  BOUTIQUE
+                </span>
+              </span>
             </Link>
             <ul className="ml-5 hidden items-center gap-5 lg:flex xl:gap-7">
               {[shopAll, story].map((item) => (
