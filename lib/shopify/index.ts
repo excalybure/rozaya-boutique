@@ -352,9 +352,11 @@ export async function getCollectionProductsWithFilters({
 }): Promise<CollectionProductsResult> {
   "use cache";
   cacheTag(TAGS.collections, TAGS.products);
-  cacheLife(
-    collection === "hidden-homepage-featured-items" ? "minutes" : "days",
-  );
+  if (collection === "hidden-homepage-featured-items") {
+    cacheLife("minutes");
+  } else {
+    cacheLife("days");
+  }
 
   if (!isShopifyConfigured) {
     console.log(
