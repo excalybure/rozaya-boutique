@@ -1,4 +1,5 @@
 import { categories } from "lib/categories";
+import { policyPages } from "lib/policies";
 import Link from "next/link";
 
 const shopLinks = [
@@ -67,6 +68,32 @@ export default function Footer() {
                 className="font-sans text-sm text-cream/75 transition-colors hover:text-gold-light"
               >
                 The collection
+              </Link>
+            </li>
+            {Object.entries(policyPages).map(([handle, policy]) => (
+              <li key={handle}>
+                <Link
+                  href={`/policies/${handle}`}
+                  className="font-sans text-sm text-cream/75 transition-colors hover:text-gold-light"
+                >
+                  {policy.title}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link
+                href="/privacy-choices"
+                className="font-sans text-sm text-cream/75 transition-colors hover:text-gold-light"
+              >
+                Privacy choices
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/privacy-choices#data-sharing"
+                className="font-sans text-sm text-cream/75 transition-colors hover:text-gold-light"
+              >
+                Do not sell or share my personal information
               </Link>
             </li>
           </ul>

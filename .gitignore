@@ -37,3 +37,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# Legal publication data and generated copies can contain personal contact details.
+/docs/legal/tokens.local.json
+/docs/legal/final/
+/docs/legal/.legal-*/

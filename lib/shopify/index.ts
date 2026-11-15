@@ -71,10 +71,12 @@ type ExtractVariables<T> = T extends { variables: object }
   : never;
 
 export async function shopifyFetch<T>({
+  apiVersion,
   headers,
   query,
   variables,
 }: {
+  apiVersion?: string;
   headers?: HeadersInit;
   query: string;
   variables?: ExtractVariables<T>;
@@ -84,7 +86,10 @@ export async function shopifyFetch<T>({
       throw new Error("SHOPIFY_STORE_DOMAIN environment variable is not set");
     }
 
-    const result = await fetch(endpoint, {
+    const requestEndpoint = apiVersion
+      ? `${domain}/api/${apiVersion}/graphql.json`
+      : endpoint;
+    const result = await fetch(requestEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

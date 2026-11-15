@@ -1,6 +1,8 @@
 import { CartProvider } from "components/cart/cart-context";
 import Footer from "components/layout/footer";
 import { Navbar } from "components/layout/navbar";
+import PrivacyProvider from "components/privacy/provider";
+import { getPrivacyConfig } from "lib/privacy/config";
 import { getCart } from "lib/shopify";
 import { baseUrl } from "lib/utils";
 import { Cormorant_Garamond, Inter, Playfair_Display } from "next/font/google";
@@ -71,12 +73,14 @@ export default async function RootLayout({
   return (
     <html lang="en" className={htmlClass}>
       <body className="bg-cream text-charcoal selection:bg-gold/30">
-        <CartProvider cartPromise={cart}>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
-          <Toaster closeButton />
-        </CartProvider>
+        <PrivacyProvider config={getPrivacyConfig()}>
+          <CartProvider cartPromise={cart}>
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+            <Toaster closeButton />
+          </CartProvider>
+        </PrivacyProvider>
       </body>
     </html>
   );
