@@ -1,9 +1,16 @@
 import { AddToCart } from "components/cart/add-to-cart";
 import Price from "components/price";
 import Prose from "components/prose";
+import { getProductCondition } from "lib/merchant/feed";
 import { Product } from "lib/shopify/types";
 import type { ReactNode } from "react";
 import { VariantSelector } from "./variant-selector";
+
+const CONDITION_LABELS = {
+  new: "New",
+  used: "Pre-owned",
+  refurbished: "Refurbished",
+};
 
 export function ProductDescription({
   children,
@@ -12,6 +19,7 @@ export function ProductDescription({
   children?: ReactNode;
   product: Product;
 }) {
+  const condition = getProductCondition(product.tags);
   return (
     <>
       <div className="mb-6 flex flex-col border-b border-burgundy/15 pb-6">
@@ -24,13 +32,15 @@ export function ProductDescription({
             currencyCode={product.priceRange.maxVariantPrice.currencyCode}
           />
         </div>
+        {condition ? (
+          <p className="mt-3 text-sm text-taupe">
+            Condition: {CONDITION_LABELS[condition]}
+          </p>
+        ) : null}
       </div>
       <VariantSelector options={product.options} variants={product.variants} />
       {product.descriptionHtml ? (
-        <Prose
-          className="mb-6"
-          html={product.descriptionHtml}
-        />
+        <Prose className="mb-6" html={product.descriptionHtml} />
       ) : null}
       {children}
       <AddToCart product={product} />

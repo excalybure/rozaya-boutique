@@ -3,6 +3,7 @@ import { Gallery } from "components/product/gallery";
 import { ProductDescription } from "components/product/product-description";
 import { SpecTable } from "components/product/spec-table";
 import { HIDDEN_PRODUCT_TAG } from "lib/constants";
+import { getProductCondition } from "lib/merchant/feed";
 import { getCanonicalUrl } from "lib/seo";
 import { getProduct, getProductRecommendations } from "lib/shopify";
 import type { Image } from "lib/shopify/types";
@@ -10,6 +11,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+
+const CONDITION_SCHEMA_URLS = {
+  new: "https://schema.org/NewCondition",
+  used: "https://schema.org/UsedCondition",
+  refurbished: "https://schema.org/RefurbishedCondition",
+};
 
 export async function generateMetadata(props: {
   params: Promise<{ handle: string }>;
@@ -61,6 +68,7 @@ export default async function ProductPage(props: {
 
   if (!product) return notFound();
 
+  const condition = getProductCondition(product.tags);
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -75,6 +83,7 @@ export default async function ProductPage(props: {
       priceCurrency: product.priceRange.minVariantPrice.currencyCode,
       highPrice: product.priceRange.maxVariantPrice.amount,
       lowPrice: product.priceRange.minVariantPrice.amount,
+      ...(condition ? { itemCondition: CONDITION_SCHEMA_URLS[condition] } : {}),
     },
   };
 

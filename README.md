@@ -95,6 +95,20 @@ browser executable, and `SEO_TEST_BASE_URL` to the local app (default
 `node --test tests/seo-browser.test.mjs`. These tests inspect rendered metadata,
 the sitemap and real Next.js redirects without ordering or modifying products.
 
+## Google Merchant Center product feed
+
+The public, scheduled-fetch XML feed is
+**`https://rozaya-boutique.com/feeds/google.xml`**. See
+[Merchant Center setup and feed rules](docs/merchant-center.md) before submitting
+it. Each request reads the full Headless-channel catalog from Shopify without
+the storefront's product cache; it does not submit products to Google or create
+advertising campaigns. It uses the existing public Storefront credentials on
+the server, not the private privacy-session token or an Admin API token.
+
+```sh
+node --test tests/merchant-feed.test.mjs
+```
+
 ## Legal review drafts
 
 The [revised Terms of Service](docs/legal/drafts/terms-of-service.md) and
