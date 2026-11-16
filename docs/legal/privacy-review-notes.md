@@ -83,16 +83,20 @@ Before publishing a replacement privacy policy:
   "Do not sell or share my personal information" link.
 - The Shopify-hosted `privacy-banner/storefront-banner.js` script supplies the
   actual regional banner and cookie preferences. Initialization passes the
-  headless storefront host, shop checkout host, and public Storefront token.
+  headless storefront host and public Storefront token. The session-backed SDK
+  uses a same-origin Storefront API proxy to the configured shop checkout host.
   No country is forced in production code, and no regional list is hard-coded.
 - Only the documented public token format is passed to the browser. Admin or
   private Storefront credentials must never be substituted. The configured
   token was already used with the public Storefront header; its value is not
   recorded in documentation or tests.
 - The library controls consent/GPC. Application code does not read/write
-  Shopify consent cookies, manufacture consent on load, or convert a cookie
+  Shopify consent cookie values, manufacture consent on load, or convert a cookie
   accept/decline into a sale/sharing opt-in. The separate explicit opt-out only
-  submits `sale_of_data: false` with headless context.
+  submits `sale_of_data: false` with headless context. The proxy forwards opaque
+  session cookies and each upstream `Set-Cookie` header unchanged; it does not
+  decode, merge, or reconstruct them. Responses are not cached. Shopify receives
+  GPC and Vercel's trusted visitor IP rather than the function's IP.
 - Errors and missing configuration disable actions and show an assistance
   message, never an invented success. The opt-out confirms the API's allowed
   state before reporting success. JavaScript-disabled visitors retain ordinary
@@ -103,6 +107,38 @@ Before publishing a replacement privacy policy:
   having a banner does not gate arbitrary third-party code.
 
 ## Verification matrix and limits
+
+### Session-preservation follow-up (local, not deployed)
+
+After the original deployment, live tests demonstrated that the legacy
+cross-origin transport reset unrelated explicit consent purposes. Decline then
+sale/sharing opt-out cleared cookie denials; accepting cookies after opt-out
+cleared `sale_of_data: 'no'`. The earlier tests below did not cover these
+interactions and were insufficient to establish independence.
+
+The follow-up uses Shopify's current session-backed headless bootstrap
+(`isHeadless`, `asyncConsent`, `asyncVisitorState`, same-origin `consentDomain`)
+and a fixed-shop Storefront proxy. Shopify's session now retains omitted purposes
+for both the native panel and separate opt-out; application code does not issue
+corrective consent writes after events or patch Shopify's banner internals.
+Readiness waits for the SDK's completed session initialization, not just download.
+
+`tests/privacy-browser.test.mjs` exercises the real SDK/API with isolated local
+Edge contexts: untouched purposes stay unset, decline then opt-out stays denied,
+opt-out then native Accept/Decline/Save retains the opt-out, mixed choices survive
+reload, configured regional GPC remains enforced after accepting cookies, and
+blocked script/session loads show errors and disable controls. See the README
+for the opt-in runner. Unit regressions cover proxy/session headers, separate
+cookies, trusted IP handling, same-origin validation, errors and readiness.
+An additional real-SDK migration diagnostic retained legacy cookie denials,
+sale opt-outs, and mixed purpose decisions when opening the new session-backed
+app. Those choices were created through the legacy SDK, not by constructing
+consent cookies. The five browser regressions also passed against the local
+optimized production build, not just development mode.
+These are local checks, not evidence of deployment, all-region behavior,
+cross-domain sessions, checkout continuity, or account-level opt-outs.
+
+### Historical initial verification
 
 The checks below used headless Microsoft Edge, a local Next.js server, and the
 real Shopify-hosted SDK and shop API. No orders or payments were submitted.
@@ -142,7 +178,8 @@ Developer verification:
 
 Shopify's current custom-storefront documentation recommends Hydrogen's
 analytics/session integration for full session continuity and Shopify
-Analytics. This project is Next.js without that infrastructure. The direct
+Analytics. This Next.js app now has the same-origin privacy transport, not the
+full Hydrogen analytics/cart/session infrastructure. This
 Customer Privacy API/banner integration must not be represented as full
 Hydrogen Analytics, and cross-checkout behavior needs its own evidence. Do not
 enable tracking to make a test pass. If checkout loses choices, treat it as a
@@ -158,6 +195,12 @@ launch blocker and design the supported session integration before deployment.
   session infrastructure is installed here).
 - [Current Hydrogen analytics and consent guidance](https://shopify.dev/docs/storefronts/hydrogen/analytics)
   (session/proxy requirements and checkout-continuity limitations).
+- [Shopify's session-backed consent bootstrap tests](https://github.com/Shopify/hydrogen/blob/main/packages/hydrogen/src/core/shopify-scripts/consent-tracking.test.ts)
+  (current async headless configuration and same-origin consent domain).
+- [Shopify's Storefront API forwarding implementation](https://github.com/Shopify/hydrogen/blob/27066a28577484f406222116a959eb463d255685/packages/hydrogen/src/storefront.ts#L546-L611)
+  (session-cookie and selected-header transport).
+- [Vercel request headers](https://vercel.com/docs/headers/request-headers)
+  (platform-supplied visitor IP for geolocation).
 - [Storefront Shop policy fields](https://shopify.dev/docs/api/storefront/latest/objects/Shop).
 - [Shopify Customer privacy settings](https://help.shopify.com/en/manual/privacy-and-security/privacy/customer-privacy-settings/privacy-settings).
 - [Shopify automated store policies](https://help.shopify.com/en/manual/checkout-settings/refund-privacy-tos).
