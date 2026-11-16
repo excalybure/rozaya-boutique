@@ -34,6 +34,8 @@ const MERCHANT_PRODUCTS_QUERY = /* GraphQL */ `
           nodes {
             id
             availableForSale
+            weight
+            weightUnit
             price {
               amount
               currencyCode

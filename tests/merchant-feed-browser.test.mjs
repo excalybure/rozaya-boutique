@@ -64,6 +64,18 @@ async function readFeed(context) {
   await page.close();
   assert.equal(items.length, Number(headers["x-merchant-feed-items"]));
   assert.equal(Number(headers["x-merchant-feed-excluded"]), 0);
+  const zeroWeights = Number(headers["x-merchant-feed-zero-weights"]);
+  assert.ok(
+    Number.isInteger(zeroWeights) &&
+      zeroWeights >= 0 &&
+      zeroWeights <= items.length,
+  );
+  if (process.env.MERCHANT_EXPECTED_ZERO_WEIGHTS) {
+    assert.equal(
+      zeroWeights,
+      Number(process.env.MERCHANT_EXPECTED_ZERO_WEIGHTS),
+    );
+  }
   if (process.env.MERCHANT_EXPECTED_ITEMS) {
     assert.equal(items.length, Number(process.env.MERCHANT_EXPECTED_ITEMS));
   }
@@ -93,6 +105,15 @@ test(
       assert.match(item.image_link, /^https?:\/\//);
       assert.match(item.price, /^\d+\.\d{2} USD$/);
       assert.ok(Number.parseFloat(item.price) > 0);
+      assert.match(item.shipping_weight, /^\d+\.\d{3} oz$/);
+      assert.ok(Number.parseFloat(item.shipping_weight) >= 3);
+      assert.ok(Number.parseFloat(item.shipping_weight) <= 32000);
+      if (process.env.MERCHANT_EXPECTED_SHIPPING_WEIGHT) {
+        assert.equal(
+          item.shipping_weight,
+          process.env.MERCHANT_EXPECTED_SHIPPING_WEIGHT,
+        );
+      }
       assert.ok(["in_stock", "out_of_stock"].includes(item.availability));
       assert.ok(["new", "used", "refurbished"].includes(item.condition));
       assert.deepEqual(
@@ -105,6 +126,7 @@ test(
           "image_link",
           "link",
           "price",
+          "shipping_weight",
           "title",
           ...(item.product_type ? ["product_type"] : []),
         ].sort(),

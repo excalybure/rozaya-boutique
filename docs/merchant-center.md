@@ -64,6 +64,32 @@ shipping settings, or international restrictions.
   is introduced by the feed; merchants must still accurately label any
   AI-generated source assets as required by Google.
 
+## Shipping weights: provisional until inventory weights are corrected
+
+The owner confirmed the standard prepared empty package weighs **3 oz** and
+that Shopify product weights should represent jewelry alone. Both the
+Storefront API and Shopify Admin currently report **zero weight for all 323
+variants**. The owner explicitly chose to defer weighing and use these stored
+values provisionally. These are not verified packed shipment weights.
+
+The feed now emits `shipping_weight` as **stored Shopify item weight + 3 oz**.
+It converts Shopify grams, kilograms, ounces and pounds to ounces, rounds upward
+to 0.001 oz, and enforces Google's imperial 2,000 lb limit. It does not change
+Shopify product weights, package settings or checkout rates. A corrected Shopify
+weight will appear in the next feed fetch without another code deployment.
+
+A stored zero produces **3.000 oz**, which represents packaging only and can
+understate actual shipment weight. `X-Merchant-Feed-Zero-Weights` and server
+warnings count included items with zero stored weight. Missing, negative,
+non-finite or unsupported weights are excluded with diagnostics rather than
+silently treated as zero. Do not describe carrier rates based on these values
+as validated, or assume Google's shipping-policy acceptance guarantees their
+accuracy. Correct the item weights and recheck checkout/Google rates later.
+
+The standard-package assumption must be reviewed for products or combined
+orders needing different packaging. No unverified dimensions, carrier service,
+dispatch ZIP, shipping fee or discount is introduced by this calculation.
+
 Missing required attributes, invalid images/prices/IDs and unsupported variants
 produce explicit exclusion diagnostics. HTTP response headers
 `X-Merchant-Feed-Items` and `X-Merchant-Feed-Excluded` expose the counts; server
@@ -115,7 +141,10 @@ SEO/privacy suites. Set `MERCHANT_PLAYWRIGHT_MODULE` to its `index.mjs`,
 `MERCHANT_BROWSER_EXECUTABLE` to your browser executable and
 `MERCHANT_TEST_BASE_URL` to the running app (default `http://localhost:3015`).
 Optionally set `MERCHANT_EXPECTED_ITEMS` to the independently observed current
-catalog count. Run `node --test tests/merchant-feed-browser.test.mjs`. The tests
+catalog count. `MERCHANT_EXPECTED_ZERO_WEIGHTS` and
+`MERCHANT_EXPECTED_SHIPPING_WEIGHT` can check an explicitly expected provisional
+snapshot (initially `323` and `3.000 oz`). Run
+`node --test tests/merchant-feed-browser.test.mjs`. The tests
 parse the actual XML, check all items and follow first/middle/last landing and
 image links without adding to cart or submitting anything to Google.
 
@@ -125,3 +154,4 @@ image links without adding to cart or submitting anything to Google.
 - [Condition](https://support.google.com/merchants/answer/6324469)
 - [Unique product identifiers](https://support.google.com/merchants/answer/160161)
 - [Identifier exists](https://support.google.com/merchants/answer/6324478)
+- [Shipping weight](https://support.google.com/merchants/answer/6324503)

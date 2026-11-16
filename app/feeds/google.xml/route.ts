@@ -19,6 +19,12 @@ export async function GET(): Promise<Response> {
     if (feed.excluded.length) {
       console.warn("Merchant Center feed exclusions:", feed.excluded);
     }
+    if (feed.zeroWeightItemCount) {
+      console.warn(
+        "Merchant Center items with zero stored product weight; shipping weights are provisional packaging-only totals:",
+        feed.zeroWeightItemCount,
+      );
+    }
     return new Response(feed.xml, {
       headers: {
         "Content-Type": "application/xml; charset=utf-8",
@@ -26,6 +32,7 @@ export async function GET(): Promise<Response> {
         "X-Content-Type-Options": "nosniff",
         "X-Merchant-Feed-Items": String(feed.itemCount),
         "X-Merchant-Feed-Excluded": String(feed.excluded.length),
+        "X-Merchant-Feed-Zero-Weights": String(feed.zeroWeightItemCount),
       },
     });
   } catch {

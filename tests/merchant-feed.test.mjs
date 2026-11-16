@@ -31,6 +31,8 @@ function product(id = 1) {
         {
           id: `gid://shopify/ProductVariant/${id}`,
           availableForSale: true,
+          weight: 0.5,
+          weightUnit: "OUNCES",
           price: { amount: "42.0", currencyCode: "USD" },
         },
       ],
@@ -58,6 +60,8 @@ test("feed uses real variant identity, canonical landing pages, USD price and ex
   );
   assert.match(result.xml, /<g:price>42.00 USD<\/g:price>/);
   assert.match(result.xml, /<g:condition>used<\/g:condition>/);
+  assert.match(result.xml, /<g:shipping_weight>3.500 oz<\/g:shipping_weight>/);
+  assert.equal(result.zeroWeightItemCount, 0);
   assert.match(result.xml, /<g:availability>in_stock<\/g:availability>/);
   assert.match(result.xml, /<g:product_type>Ring<\/g:product_type>/);
   item.title = "An updated product title";
@@ -109,6 +113,74 @@ test("sold-out items retain stable identity and accurately report out_of_stock",
   assert.equal(result.itemCount, 1);
   assert.match(result.xml, /<g:availability>out_of_stock<\/g:availability>/);
   assert.match(result.xml, /<g:id>shopify_1<\/g:id>/);
+});
+
+test("shipping weight converts each Shopify unit and adds packaging exactly once without mutating the source", () => {
+  for (const [weight, weightUnit, expected] of [
+    [1, "OUNCES", "4.000 oz"],
+    [0.0625, "POUNDS", "4.000 oz"],
+    [28.349523125, "GRAMS", "4.000 oz"],
+    [0.028349523125, "KILOGRAMS", "4.000 oz"],
+    [1, "GRAMS", "3.036 oz"],
+    [0.0001, "OUNCES", "3.001 oz"],
+    [31997, "OUNCES", "32000.000 oz"],
+  ]) {
+    const item = product();
+    Object.assign(item.variants.nodes[0], { weight, weightUnit });
+    const original = structuredClone(item);
+    const { xml, zeroWeightItemCount } = buildMerchantFeed([item], options);
+    assert.equal(
+      xml.match(/<g:shipping_weight>(.*?)<\/g:shipping_weight>/)[1],
+      expected,
+    );
+    assert.equal(zeroWeightItemCount, 0);
+    assert.deepEqual(item, original);
+  }
+});
+
+test("explicit zero weights produce provisional packaging-only totals and accurate diagnostics", () => {
+  for (const unit of ["GRAMS", "KILOGRAMS", "OUNCES", "POUNDS"]) {
+    const zero = product(2);
+    zero.variants.nodes[0].weight = 0;
+    zero.variants.nodes[0].weightUnit = unit;
+    const hiddenZero = structuredClone(zero);
+    hiddenZero.id = "gid://shopify/Product/3";
+    hiddenZero.tags.push(HIDDEN_PRODUCT_TAG);
+    const result = buildMerchantFeed([product(), zero, hiddenZero], options);
+    assert.equal(result.itemCount, 2);
+    assert.equal(result.zeroWeightItemCount, 1);
+    assert.match(
+      result.xml,
+      /<g:shipping_weight>3.000 oz<\/g:shipping_weight>/,
+    );
+  }
+});
+
+test("missing or invalid jewelry weights are excluded, not replaced with packaging-only estimates", () => {
+  for (const [weight, weightUnit] of [
+    [null, "GRAMS"],
+    [undefined, "GRAMS"],
+    [-1, "GRAMS"],
+    [NaN, "GRAMS"],
+    [Infinity, "POUNDS"],
+    ["1", "OUNCES"],
+    [1, null],
+    [1, "STONE"],
+    [1, "toString"],
+    [31997.0001, "OUNCES"],
+    [Number.MAX_VALUE, "KILOGRAMS"],
+  ]) {
+    const invalid = product(2);
+    Object.assign(invalid.variants.nodes[0], { weight, weightUnit });
+    const result = buildMerchantFeed([product(), invalid], options);
+    assert.equal(result.itemCount, 1);
+    assert.equal(result.zeroWeightItemCount, 0);
+    assert.match(result.excluded[0].reason, /Shopify product weight/);
+    assert.throws(
+      () => buildMerchantFeed([invalid], options),
+      /invalid empty feed/,
+    );
+  }
 });
 
 test("XML escapes catalog text and image query strings and removes illegal XML characters", () => {
