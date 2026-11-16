@@ -17,11 +17,9 @@ async function setup(t) {
   const bannerCalls = [];
   const consentCalls = [];
   const timers = new Map();
-  const listeners = new Map();
   let timerId = 0;
   let allowed = true;
   const api = {
-    consentStatus: "loaded",
     saleOfDataAllowed: () => allowed,
     setTrackingConsent: (consent, callback) => {
       consentCalls.push({ consent, callback });
@@ -30,7 +28,7 @@ async function setup(t) {
   const previousWindow = globalThis.window;
   const previousDocument = globalThis.document;
   globalThis.window = {
-    location: { hostname: "shop.example.com", host: "shop.example.com:8443" },
+    location: { hostname: "shop.example.com" },
     Shopify: { customerPrivacy: api },
     privacyBanner: {
       loadBanner: async (options) => bannerCalls.push(["load", options]),
@@ -47,8 +45,6 @@ async function setup(t) {
   globalThis.document = {
     createElement: () => ({}),
     head: { appendChild: (script) => scripts.push(script) },
-    addEventListener: (name, listener) => listeners.set(name, listener),
-    removeEventListener: (name) => listeners.delete(name),
   };
   t.after(() => {
     globalThis.window = previousWindow;
@@ -70,7 +66,6 @@ async function setup(t) {
     consentCalls,
     api,
     timers,
-    listeners,
     ready,
     setAllowed: (value) => {
       allowed = value;
@@ -156,54 +151,15 @@ test("one headless regional initialization, with no manufactured consent", async
       "load",
       {
         ...config,
-        checkoutRootDomain: "shop.example.com:8443",
         storefrontRootDomain: "shop.example.com",
         headlessStorefront: true,
       },
     ],
   ]);
-  assert.deepEqual(api.config, {
-    isHeadless: true,
-    asyncConsent: true,
-    asyncVisitorState: true,
-    consentDomain: "shop.example.com:8443",
-    storefrontAccessToken: config.storefrontAccessToken,
-  });
   assert.deepEqual(consentCalls, []);
   await sdk.showPrivacyPreferences(config);
   assert.equal(bannerCalls[1][0], "preferences");
   assert.deepEqual(bannerCalls[1][1], bannerCalls[0][1]);
-});
-
-test("banner waits for the session-ready event, not just script download", async (t) => {
-  const { sdk, scripts, api, listeners, bannerCalls, consentCalls } =
-    await setup(t);
-  api.consentStatus = "loading";
-  const promise = sdk.loadCustomerPrivacy(config);
-  await scripts[0].onload();
-  assert.deepEqual(bannerCalls, []);
-  api.consentStatus = "loaded";
-  await listeners.get("consentTrackingApiLoaded")();
-  assert.equal(await promise, api);
-  assert.equal(bannerCalls.length, 1);
-  assert.equal(listeners.size, 0);
-  assert.deepEqual(consentCalls, []);
-});
-
-test("session failure times out without opening preferences or writing consent", async (t) => {
-  const { sdk, scripts, api, timers, listeners, bannerCalls, consentCalls } =
-    await setup(t);
-  api.consentStatus = "loading";
-  const rejected = assert.rejects(
-    sdk.loadCustomerPrivacy(config),
-    /did not finish loading/,
-  );
-  await scripts[0].onload();
-  [...timers.values()][0]();
-  await rejected;
-  assert.equal(listeners.size, 0);
-  assert.deepEqual(bannerCalls, []);
-  assert.deepEqual(consentCalls, []);
 });
 
 test("blocked script, missing SDK, and loading timeout reject rather than succeeding", async (t) => {
@@ -235,7 +191,6 @@ test("explicit sale/sharing opt-out preserves separate cookie choices", async (t
   assert.equal(consentCalls.length, 1);
   assert.deepEqual(consentCalls[0].consent, {
     ...config,
-    checkoutRootDomain: "shop.example.com:8443",
     storefrontRootDomain: "shop.example.com",
     headlessStorefront: true,
     sale_of_data: false,

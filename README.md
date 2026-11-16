@@ -108,16 +108,6 @@ token is intentionally sent to the browser; Admin and private Storefront tokens
 are rejected. Do not replace this with private credentials. No advertising
 pixels or analytics events are added.
 
-The SDK uses Shopify's session-backed headless configuration and the same-origin
-`POST /api/unstable/graphql.json` transport. The proxy targets only the configured
-shop with its public token, forwards opaque session cookies and GPC, and returns
-Shopify's separate `Set-Cookie` and `Server-Timing` headers without caching.
-On Vercel, its trusted client IP header is forwarded for Shopify geolocation.
-No consent cookie values are interpreted or constructed by application code.
-Do not switch the banner back to direct cross-origin requests: omitted consent
-purposes can reset when Shopify does not receive the existing visitor session.
-Both the native cookie panel and the separate opt-out need the same transport.
-
 Test privacy behavior on HTTPS for every launch domain and checkout; localhost
 success alone does not establish checkout continuity or account-level opt-outs.
 See the review notes for the verification matrix and known limitations.
@@ -126,39 +116,8 @@ Focused regression tests use Node's built-in test runner and native TypeScript
 support (Node 22.18+; verified on Node 24):
 
 ```sh
-node --test tests/privacy.test.mjs tests/privacy-proxy.test.mjs
+node --test tests/privacy.test.mjs
 ```
-
-Real-SDK browser regressions are opt-in and use isolated browser contexts. They
-contact the configured Shopify shop but do not change merchant settings, create
-orders, or install trackers. Run from a configured data-sale opt-out region for
-the GPC assertion. Start the local app on port 3015 with its normal environment:
-
-```powershell
-node .\node_modules\next\dist\bin\next dev --webpack --hostname localhost --port 3015
-```
-
-In another PowerShell window, install Playwright outside the repository and use
-an existing Edge installation (or supply another browser executable). The test
-skips explicitly when `PRIVACY_PLAYWRIGHT_MODULE` is not set:
-
-```powershell
-$testTools = Join-Path $env:TEMP ('rozaya-privacy-' + [guid]::NewGuid().ToString('N'))
-try {
-  npm.cmd install --prefix $testTools --no-package-lock --no-audit --no-fund playwright@1.58.2
-  if ($LASTEXITCODE -ne 0) { throw 'Playwright installation failed.' }
-  $env:PRIVACY_PLAYWRIGHT_MODULE = Join-Path $testTools 'node_modules\playwright\index.mjs'
-  $env:PRIVACY_BROWSER_EXECUTABLE = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-  node --test tests/privacy-browser.test.mjs
-  if ($LASTEXITCODE -ne 0) { throw 'Privacy browser tests failed.' }
-} finally {
-  Remove-Item Env:PRIVACY_PLAYWRIGHT_MODULE, Env:PRIVACY_BROWSER_EXECUTABLE -ErrorAction SilentlyContinue
-  if (Test-Path -LiteralPath $testTools) { Remove-Item -LiteralPath $testTools -Recurse -Force }
-}
-```
-
-`PRIVACY_TEST_BASE_URL` can target another local port or an explicitly approved
-HTTPS test deployment. Local success is not production or checkout verification.
 
 ## Image credits
 
