@@ -74,6 +74,27 @@ See [Custom domain setup](docs/custom-domains.md) for the recorded Vercel DNS
 values, Squarespace configuration steps, and verification instructions for
 `rozaya-boutique.com` and `rozayaboutique.com`.
 
+The primary origin is **`https://rozaya-boutique.com`**, defined in `lib/seo.ts`.
+The three custom aliases receive permanent, method-preserving redirects with
+their paths and query values retained. Localhost, preview deployments, the
+production `*.vercel.app` hostname and Shopify checkout are not redirected.
+Page canonicals, metadata and the sitemap consistently use the chosen origin,
+not Vercel's automatically selected production hostname. Search text (`q`) is
+retained in search canonicals; tracking/sort/filter/variant URL variations use
+the underlying page canonical. Existing noindex rules are unchanged.
+
+```sh
+node --test tests/seo.test.mjs tests/privacy.test.mjs tests/privacy-proxy.test.mjs
+```
+
+With a running app and configured Shopify catalog, opt-in browser regressions
+use an externally installed Playwright module, like the privacy tests below.
+Set `SEO_PLAYWRIGHT_MODULE` to its `index.mjs`, `SEO_BROWSER_EXECUTABLE` to the
+browser executable, and `SEO_TEST_BASE_URL` to the local app (default
+`http://localhost:3015`) or an approved production/test origin. Then run
+`node --test tests/seo-browser.test.mjs`. These tests inspect rendered metadata,
+the sitemap and real Next.js redirects without ordering or modifying products.
+
 ## Legal review drafts
 
 The [revised Terms of Service](docs/legal/drafts/terms-of-service.md) and

@@ -1,17 +1,31 @@
 import Grid from "components/grid";
 import ProductGridItems from "components/layout/product-grid-items";
 import { defaultSort, sorting } from "lib/constants";
+import { getSearchCanonicalUrl } from "lib/seo";
 import { getProducts } from "lib/shopify";
+import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata = {
-  title: "Shop jewelry",
-  description: "Browse fine, vintage and collectible jewelry at Rozaya Boutique.",
+type SearchPageProps = {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export default async function SearchPage(props: {
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+export async function generateMetadata(
+  props: SearchPageProps,
+): Promise<Metadata> {
+  const searchParams = (await props.searchParams) ?? {};
+  const query = Array.isArray(searchParams.q)
+    ? searchParams.q[0]
+    : searchParams.q;
+  return {
+    title: "Shop jewelry",
+    description:
+      "Browse fine, vintage and collectible jewelry at Rozaya Boutique.",
+    alternates: { canonical: getSearchCanonicalUrl(query) },
+  };
+}
+
+export default async function SearchPage(props: SearchPageProps) {
   const searchParams = (await props.searchParams) ?? {};
   const sort = Array.isArray(searchParams.sort)
     ? searchParams.sort[0]

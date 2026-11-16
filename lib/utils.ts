@@ -1,8 +1,7 @@
 import { ReadonlyURLSearchParams } from "next/navigation";
+import { CANONICAL_ORIGIN } from "./seo";
 
-export const baseUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "http://localhost:3000";
+export const baseUrl = CANONICAL_ORIGIN;
 
 export const createUrl = (
   pathname: string,

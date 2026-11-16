@@ -2,14 +2,19 @@ import { CategoryTiles } from "components/home/category-tiles";
 import { FeaturedPieces } from "components/home/featured-pieces";
 import { Hero } from "components/home/hero";
 import { Story } from "components/home/story";
+import { getCanonicalUrl } from "lib/seo";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Fine, vintage & collectible jewelry",
+  title: {
+    absolute: "Rozaya Boutique | Fine, Vintage & Collectible Jewelry",
+  },
+  alternates: { canonical: getCanonicalUrl("/") },
   description:
     "Discover a considered collection of fine, vintage and collectible jewelry, chosen for its character, craftsmanship and enduring appeal.",
   openGraph: {
     type: "website",
+    url: getCanonicalUrl("/"),
     title: "Rozaya Boutique — Jewelry with a life of its own",
     description:
       "A considered collection of fine, vintage and collectible jewelry.",

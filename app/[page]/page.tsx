@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import Prose from "components/prose";
+import { getCanonicalUrl } from "lib/seo";
 import { getPage } from "lib/shopify";
 import { notFound } from "next/navigation";
 
@@ -12,10 +13,13 @@ export async function generateMetadata(props: {
 
   if (!page) return notFound();
 
+  const canonical = getCanonicalUrl(`/${encodeURIComponent(page.handle)}`);
   return {
     title: page.seo?.title || page.title,
     description: page.seo?.description || page.bodySummary,
+    alternates: { canonical },
     openGraph: {
+      url: canonical,
       publishedTime: page.createdAt,
       modifiedTime: page.updatedAt,
       type: "article",

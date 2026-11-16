@@ -1,7 +1,11 @@
 import PrivacyChoices from "components/privacy/choices";
+import { getCanonicalUrl } from "lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Privacy choices" };
+export const metadata: Metadata = {
+  title: "Privacy choices",
+  alternates: { canonical: getCanonicalUrl("/privacy-choices") },
+};
 
 export default function PrivacyChoicesPage() {
   return (

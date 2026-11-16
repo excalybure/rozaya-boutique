@@ -5,6 +5,7 @@ import {
   localizePrivacyLinks,
   policyPages,
 } from "lib/policies";
+import { getCanonicalUrl } from "lib/seo";
 import { getPolicies } from "lib/shopify/policies";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -25,6 +26,7 @@ export async function generateMetadata({
     savedPolicy?.body.trim() && !isReviewDraft(savedPolicy.body);
   return {
     title: policyPages[policy].title,
+    alternates: { canonical: getCanonicalUrl(`/policies/${policy}`) },
     ...(!available && { robots: { index: false, follow: true } }),
   };
 }

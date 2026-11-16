@@ -2,6 +2,7 @@ import Filters from "components/layout/search/filters";
 import Grid from "components/grid";
 import ProductGridItems from "components/layout/product-grid-items";
 import { defaultSort, sorting } from "lib/constants";
+import { getCanonicalUrl } from "lib/seo";
 import {
   getCollection,
   getCollectionProductsWithFilters,
@@ -82,6 +83,11 @@ export async function generateMetadata(props: {
 
   return {
     title: collection?.seo?.title || title,
+    alternates: {
+      canonical: getCanonicalUrl(
+        `/search/${encodeURIComponent(params.collection)}`,
+      ),
+    },
     description:
       collection?.seo?.description ||
       collection?.description ||

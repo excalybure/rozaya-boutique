@@ -10,7 +10,59 @@ The intended routing is:
 Custom domain -> Vercel storefront -> Shopify commerce APIs / checkout
 ```
 
-## Recorded configuration
+## Canonical website and redirects
+
+The owner selected **`https://rozaya-boutique.com`** as the primary website.
+`lib/seo.ts` is the shared source for the origin, canonical URL helpers and the
+host-limited redirect rules used by `next.config.ts`.
+
+- `www.rozaya-boutique.com`, `rozayaboutique.com` and
+  `www.rozayaboutique.com` permanently redirect to the primary website.
+- Redirects use HTTP **308**, preserving the request method, page path and query
+  parameters. They do not send every incoming link to the homepage.
+- The primary host does not redirect to itself. No redirect rule targets local
+  development, preview deployments, `rozaya-boutique.vercel.app` or Shopify's
+  checkout host. Existing Shopify checkout settings are unchanged.
+- Each page supplies its own canonical rather than inheriting a homepage
+  canonical. Tracking, sorting, collection-filter and product-variant parameters
+  are omitted from canonical URLs. Meaningful search text (`q`) is retained.
+- Robots sitemap references, sitemap URLs and the metadata base use the same
+  primary origin, independently of `VERCEL_PROJECT_PRODUCTION_URL`. Existing
+  hidden-product/draft-policy noindex rules are preserved.
+- Metadata is emitted in the initial document head using Next.js's supported
+  `htmlLimitedBots: /.*/` setting. This avoids body/head canonical duplication
+  observed with this Next.js version's streaming metadata. Metadata-dependent
+  data must resolve before the initial response; content streaming is unchanged.
+
+The existing partial-prerendered not-found response may have HTTP 200 after its
+shell has streamed; it still renders the not-found page with `noindex` and no
+canonical. This behavior was confirmed on the pre-change production site and
+is not altered by the canonical-domain changes.
+
+These application changes do not edit DNS or email records. Do not reapply the
+historical Squarespace removal instructions below just to enable SEO redirects.
+Redirects do not copy browser cookies between hosts: visitors previously using
+an alias may need to set privacy choices or recreate a cart on the primary host.
+The implementation deliberately does not rewrite consent/cart cookies.
+
+## Google discovery after deployment
+
+1. Verify `rozaya-boutique.com` as a Domain property in Google Search Console
+   using the DNS record supplied by Google. Adding that verification TXT record
+   is a separate owner action; preserve all existing mail and DNS records.
+2. Inspect `https://rozaya-boutique.com/` with **Test live URL** and review crawl
+   access, indexing eligibility, rendered content and canonical selection. Also
+   inspect the older `www` URL if Google still lists it without page information.
+3. Submit `https://rozaya-boutique.com/sitemap.xml` and request indexing of the
+   primary homepage and important real collection/product pages.
+4. Monitor Google's subsequent crawl/indexing reports. The current robots file
+   permits crawling; a stale Google result does not establish a present block.
+
+No code change can guarantee indexing, an immediate refreshed snippet, or a
+particular ranking. Google Search Console access and actual Google-side reports
+are needed to establish why an earlier result had no page information.
+
+## Historical initial configuration
 
 The owner's Vercel screenshot showed all four custom hostnames assigned to
 Production but marked **Invalid Configuration**:
@@ -40,8 +92,10 @@ domain uses the same values: its instructions were collapsed in the screenshot.
 The trailing dot denotes a fully qualified DNS name; if Squarespace normalizes
 it away when saving, that alone is not an error.
 
-This document records the instructions, not a completed DNS change. No preferred
-primary domain or redirects have been confirmed yet.
+This section records the initial DNS instructions, not the current domain
+status. A later read-only audit found all four custom hosts serving the site
+over HTTPS; the canonical configuration above supersedes the former undecided
+primary-domain state.
 
 ## Replace Squarespace's website preset
 
@@ -93,9 +147,10 @@ can retain old answers: the Squarespace preset shown had a four-hour TTL.
 Allow for propagation rather than repeatedly changing correct records.
 
 Visit all four HTTPS addresses, including from a phone on mobile data. Confirm
-that they display the storefront or intentionally redirect to the chosen primary
-domain, not the Squarespace placeholder. Once a primary domain is chosen,
-configure the other three hostnames to redirect to it in Vercel.
+that the primary host displays the storefront and the other three permanently
+redirect to the same path/query on `https://rozaya-boutique.com`, not the
+Squarespace placeholder. The application redirect rules implement this routing;
+avoid adding conflicting redirects back to an alias in Vercel.
 
 DNS and HTTPS success do not establish that payments, shipping, taxes or checkout
 are ready. Verify Shopify commerce settings and use payment test mode before
