@@ -125,8 +125,8 @@ for both the native panel and separate opt-out; application code does not issue
 corrective consent writes after events or patch Shopify's banner internals.
 Readiness waits for the SDK's completed session initialization, not just download.
 
-`tests/privacy-browser.test.mjs` exercises the real SDK/API with isolated local
-Edge contexts: untouched purposes stay unset, decline then opt-out stays denied,
+The original public-token follow-up was exercised against the real SDK/API with
+isolated local Edge contexts: untouched purposes stay unset, decline then opt-out stays denied,
 opt-out then native Accept/Decline/Save retains the opt-out, mixed choices survive
 reload, configured regional GPC remains enforced after accepting cookies, and
 blocked script/session loads show errors and disable controls. See the README
@@ -150,9 +150,40 @@ regional behavior and leaving the independent-choice defect unresolved.
 The current isolated preview candidate uses the private Storefront credential
 only on the server, with `Shopify-Storefront-Private-Token` and the documented
 `Shopify-Storefront-Buyer-IP` header. The public browser configuration remains
-separate. This path is not yet geographically verified: preview tests must
-compare detected region and initial processing permissions to a direct Shopify
-request before production promotion. Adding the secret alone is not a fix.
+separate. Adding the secret alone is not a fix; regional behavior and consent
+interactions require runtime verification before production promotion.
+
+### Private-token preview verification (owner-assisted)
+
+The owner tested preview commit `85b45216885bff8668d8ac7129e6cc64c7d199be`
+on the isolated `fix/privacy-session-private-auth` branch. Vercel reported a
+successful Preview deployment. Its sign-in protection prevented independent
+automated browser access, so the runtime findings below are owner-reported UI
+actions and read-only Shopify API outputs, not an automated suite result.
+
+| Check                               | Owner-reported result                                                                                                                                                                                          |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Native preferences panel            | Opened successfully.                                                                                                                                                                                           |
+| Regional comparison                 | Preview and restored live site both returned `USCA` in the same browser/network.                                                                                                                               |
+| Cookie denial then separate opt-out | After Decline all, separate opt-out and reload, all four consent purposes were `no`.                                                                                                                           |
+| Cookie acceptance after opt-out     | After Accept all and reload, the three cookie purposes were `yes`, `sale_of_data` stayed `no`, and `saleOfDataAllowed()` was `false`.                                                                          |
+| Selective Save and reload           | Marketing and Analytics `no`, Preferences `yes`, sale/sharing `no`. An earlier Analytics `yes` result matched a checkbox the owner had not unchecked; after correcting the selection, the saved state matched. |
+| Untouched fresh session             | In a fresh private window without consent interactions, all four recorded purposes were empty strings.                                                                                                         |
+| Native Firefox GPC, fresh session   | After enabling the native setting, a fresh private session returned region `USCA`, GPC `true`, opt-out region `true`, and sharing allowed `false` before a manual consent choice.                              |
+| Cookie acceptance with GPC active   | After Accept all and reload, GPC remained `true` and sharing allowed remained `false`.                                                                                                                         |
+
+The private-token candidate also passed 22 focused unit tests, TypeScript
+no-emit, the optimized webpack build, and focused formatting/whitespace checks.
+Its browser regression runner now includes direct-versus-proxy regional and
+default-permission comparison, but that automated Preview check was not run
+through the sign-in barrier. No protection was disabled and no secret was
+included in the owner's console outputs.
+
+This is bounded California/browser evidence, not all-region, all-domain,
+checkout-continuity, account/server-side opt-out, or legal-compliance approval.
+Before promotion, the private token must also be configured securely for
+Production. Production behavior must be rechecked after deployment rather than
+inferred from these Preview results.
 
 ### Historical initial verification
 
