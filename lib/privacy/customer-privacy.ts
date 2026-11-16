@@ -8,6 +8,14 @@ type HeadlessConfig = PrivacyConfig & {
   headlessStorefront: true;
 };
 
+type SessionConfig = {
+  isHeadless: true;
+  asyncConsent: true;
+  asyncVisitorState: true;
+  consentDomain: string;
+  storefrontAccessToken: string;
+};
+
 export type CustomerPrivacy = {
   analyticsProcessingAllowed: () => boolean;
   marketingAllowed: () => boolean;
@@ -15,6 +23,12 @@ export type CustomerPrivacy = {
   saleOfDataAllowed: () => boolean;
   saleOfDataRegion: () => boolean;
   getRegion: () => string;
+  currentVisitorConsent: () => {
+    marketing: "yes" | "no" | "";
+    analytics: "yes" | "no" | "";
+    preferences: "yes" | "no" | "";
+    sale_of_data: "yes" | "no" | "";
+  };
   setTrackingConsent: (
     consent: HeadlessConfig & { sale_of_data: false },
     callback: (result?: { error?: string }) => void,
@@ -27,13 +41,19 @@ type PrivacyBanner = {
 };
 
 type PrivacyWindow = Window & {
-  Shopify?: { customerPrivacy?: CustomerPrivacy };
+  Shopify?: {
+    customerPrivacy?: (CustomerPrivacy | { setTrackingConsent?: never }) & {
+      config?: SessionConfig;
+      consentStatus?: string;
+    };
+  };
   privacyBanner?: PrivacyBanner;
 };
 
 const SCRIPT_URL =
   "https://cdn.shopify.com/shopifycloud/privacy-banner/storefront-banner.js";
 const LOAD_TIMEOUT = 15000;
+const READY_EVENT = "consentTrackingApiLoaded";
 let loading: Promise<CustomerPrivacy> | undefined;
 
 export function isPublicStorefrontToken(token: string): boolean {
@@ -44,6 +64,7 @@ export function isPublicStorefrontToken(token: string): boolean {
 function headlessConfig(config: PrivacyConfig): HeadlessConfig {
   return {
     ...config,
+    checkoutRootDomain: window.location.host,
     storefrontRootDomain: window.location.hostname,
     headlessStorefront: true,
   };
@@ -64,31 +85,72 @@ export function loadCustomerPrivacy(
   loading = new Promise<CustomerPrivacy>((resolve, reject) => {
     const host = window as PrivacyWindow;
     const script = document.createElement("script");
+    let scriptLoaded = false;
+    let initializing = false;
+    const cleanup = () => {
+      window.clearTimeout(timeout);
+      document.removeEventListener(READY_EVENT, initialize);
+    };
+    const fail = (error: unknown) => {
+      initializing = true;
+      cleanup();
+      reject(error);
+    };
+    const initialize = async () => {
+      const privacy = host.Shopify?.customerPrivacy;
+      if (
+        !scriptLoaded ||
+        initializing ||
+        privacy?.consentStatus !== "loaded"
+      ) {
+        return;
+      }
+      initializing = true;
+      try {
+        if (!host.privacyBanner || !privacy.setTrackingConsent) {
+          throw new Error("Shopify privacy controls are unavailable.");
+        }
+        // Wait for Shopify's session before deciding regional banner/GPC behavior.
+        await host.privacyBanner.loadBanner(headlessConfig(config));
+        cleanup();
+        resolve(privacy);
+      } catch (error) {
+        fail(error);
+      }
+    };
     const timeout = window.setTimeout(() => {
-      reject(new Error("Shopify privacy settings did not finish loading."));
+      fail(new Error("Shopify privacy settings did not finish loading."));
     }, LOAD_TIMEOUT);
 
+    // Match Shopify's session-backed headless bootstrap. The same-origin proxy
+    // lets Shopify retain omitted purposes, including native banner updates.
+    // Cookies stay opaque; initialization records no visitor consent decision.
+    host.Shopify ??= {};
+    host.Shopify.customerPrivacy ??= {};
+    host.Shopify.customerPrivacy.config = {
+      isHeadless: true,
+      asyncConsent: true,
+      asyncVisitorState: true,
+      consentDomain: window.location.host,
+      storefrontAccessToken: config.storefrontAccessToken,
+    };
+    document.addEventListener(READY_EVENT, initialize);
     script.src = SCRIPT_URL;
     script.async = true;
     script.id = "shopify-customer-privacy";
     script.onerror = () => {
-      window.clearTimeout(timeout);
-      reject(new Error("Shopify privacy settings could not be loaded."));
+      fail(new Error("Shopify privacy settings could not be loaded."));
     };
-    script.onload = async () => {
-      try {
-        if (!host.privacyBanner || !host.Shopify?.customerPrivacy) {
-          throw new Error("Shopify privacy controls are unavailable.");
-        }
-        // Shopify decides where to show its banner and honors regional GPC settings.
-        // Do not record synthetic consent or read/write Shopify consent cookies.
-        await host.privacyBanner.loadBanner(headlessConfig(config));
-        window.clearTimeout(timeout);
-        resolve(host.Shopify.customerPrivacy);
-      } catch (error) {
-        window.clearTimeout(timeout);
-        reject(error);
+    script.onload = () => {
+      scriptLoaded = true;
+      if (
+        !host.privacyBanner ||
+        !host.Shopify?.customerPrivacy?.setTrackingConsent
+      ) {
+        fail(new Error("Shopify privacy controls are unavailable."));
+        return;
       }
+      return initialize();
     };
     document.head.appendChild(script);
   });

@@ -108,6 +108,24 @@ token is intentionally sent to the browser; Admin and private Storefront tokens
 are rejected. Do not replace this with private credentials. No advertising
 pixels or analytics events are added.
 
+The SDK uses Shopify's session-backed headless configuration and the same-origin
+`POST /api/unstable/graphql.json` transport. The proxy targets only the configured
+shop with a separate **server-only** `SHOPIFY_STOREFRONT_PRIVATE_TOKEN` credential.
+Save that variable as a Vercel Secret, initially scoped to the testing Preview
+environment only. Never use a `NEXT_PUBLIC_` name or replace the browser's public
+token with it. The private credential is sent only in Shopify's private-token
+header; Vercel's trusted visitor IP is sent in `Shopify-Storefront-Buyer-IP`.
+There is no public-token fallback. Missing credentials, invalid/missing visitor
+IP, or a non-Vercel runtime fail with an error instead of using the server's
+region. Do not forge Vercel headers to enable local browser integration tests.
+
+The proxy forwards opaque session cookies and GPC, and returns Shopify's separate
+`Set-Cookie` and `Server-Timing` headers without caching.
+No consent cookie values are interpreted or constructed by application code.
+Do not switch the banner back to direct cross-origin requests: omitted consent
+purposes can reset when Shopify does not receive the existing visitor session.
+Both the native cookie panel and the separate opt-out need the same transport.
+
 Test privacy behavior on HTTPS for every launch domain and checkout; localhost
 success alone does not establish checkout continuity or account-level opt-outs.
 See the review notes for the verification matrix and known limitations.
@@ -116,8 +134,44 @@ Focused regression tests use Node's built-in test runner and native TypeScript
 support (Node 22.18+; verified on Node 24):
 
 ```sh
-node --test tests/privacy.test.mjs
+node --test tests/privacy.test.mjs tests/privacy-proxy.test.mjs
 ```
+
+Real-SDK browser regressions are opt-in and use isolated browser contexts. They
+contact the configured Shopify shop but do not change merchant settings, create
+orders, or install trackers. Run from a configured data-sale opt-out region for
+the GPC assertion. Use an approved Vercel preview with its private secret and
+normal trusted visitor-IP header. Browser tests also compare its region and
+default processing permissions to a direct Shopify request from the same browser.
+This comparison is required: the earlier public-token proxy passed interaction
+tests but geolocated the server instead of the visitor and was rolled back.
+
+Install Playwright outside the repository and use an existing Edge installation
+(or supply another browser executable). Set the preview URL and the shop's real
+hostname below. The suite skips explicitly when `PRIVACY_PLAYWRIGHT_MODULE` is
+not set. Preview deployment protection may require owner-assisted access; do not
+disable it or commit access credentials just to run tests.
+
+```powershell
+$testTools = Join-Path $env:TEMP ('rozaya-privacy-' + [guid]::NewGuid().ToString('N'))
+try {
+  npm.cmd install --prefix $testTools --no-package-lock --no-audit --no-fund playwright@1.58.2
+  if ($LASTEXITCODE -ne 0) { throw 'Playwright installation failed.' }
+  $env:PRIVACY_PLAYWRIGHT_MODULE = Join-Path $testTools 'node_modules\playwright\index.mjs'
+  $env:PRIVACY_BROWSER_EXECUTABLE = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+  $env:PRIVACY_TEST_BASE_URL = 'https://YOUR-APPROVED-PREVIEW.vercel.app'
+  $env:PRIVACY_TEST_SHOP_DOMAIN = 'YOUR-SHOP.myshopify.com'
+  node --test tests/privacy-browser.test.mjs
+  if ($LASTEXITCODE -ne 0) { throw 'Privacy browser tests failed.' }
+} finally {
+  Remove-Item Env:PRIVACY_PLAYWRIGHT_MODULE, Env:PRIVACY_BROWSER_EXECUTABLE, Env:PRIVACY_TEST_BASE_URL, Env:PRIVACY_TEST_SHOP_DOMAIN -ErrorAction SilentlyContinue
+  if (Test-Path -LiteralPath $testTools) { Remove-Item -LiteralPath $testTools -Recurse -Force }
+}
+```
+
+Do not promote this branch or copy its secret to Production until the preview
+passes both geolocation and interaction tests. Preview success is not checkout,
+all-region, or account-level verification.
 
 ## Image credits
 
