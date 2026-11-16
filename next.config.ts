@@ -4,8 +4,6 @@ export default {
   async redirects() {
     return getCanonicalRedirects();
   },
-  // Keep canonicals in the initial head, not streamed body metadata/hoisting.
-  htmlLimitedBots: /.*/,
   experimental: {
     ppr: true,
     inlineCss: true,

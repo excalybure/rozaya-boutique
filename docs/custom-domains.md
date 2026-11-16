@@ -29,15 +29,17 @@ host-limited redirect rules used by `next.config.ts`.
 - Robots sitemap references, sitemap URLs and the metadata base use the same
   primary origin, independently of `VERCEL_PROJECT_PRODUCTION_URL`. Existing
   hidden-product/draft-policy noindex rules are preserved.
-- Metadata is emitted in the initial document head using Next.js's supported
-  `htmlLimitedBots: /.*/` setting. This avoids body/head canonical duplication
-  observed with this Next.js version's streaming metadata. Metadata-dependent
-  data must resolve before the initial response; content streaming is unchanged.
+- Metadata follows Next.js's default crawler-specific streaming behavior.
+  Canonicals are server-rendered and available in the rendered head; an identical
+  streamed body tag may also remain after hydration. Tests reject conflicting
+  canonical values. HTML-limited crawlers receive metadata in the initial head.
+  Do not force blocking metadata for every request: this Next.js/PPR version
+  produced empty production not-found pages with that override.
 
 The existing partial-prerendered not-found response may have HTTP 200 after its
-shell has streamed; it still renders the not-found page with `noindex` and no
-canonical. This behavior was confirmed on the pre-change production site and
-is not altered by the canonical-domain changes.
+shell has streamed. `app/not-found.tsx` provides an explicit visible error page
+and a homepage link. Invalid pages still carry `noindex` and no canonical;
+regressions exercise fresh invalid policy, product, collection and page URLs.
 
 These application changes do not edit DNS or email records. Do not reapply the
 historical Squarespace removal instructions below just to enable SEO redirects.

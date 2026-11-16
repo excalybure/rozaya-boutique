@@ -32,28 +32,37 @@ async function contextFor(t) {
 async function checkPage(page, path, expectedCanonical) {
   const response = await page.goto(new URL(path, baseUrl).href);
   assert.equal(response.status(), 200, path);
-  const head =
-    (await response.text()).match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1] ??
-    "";
+  const html = await response.text();
   assert.equal(
-    (head.match(/<link\b[^>]*rel="canonical"[^>]*>/g) ?? []).length,
+    (html.match(/<link\b[^>]*rel="canonical"[^>]*>/g) ?? []).length,
     1,
-    `Initial head canonical: ${path}`,
+    `Server-rendered canonical: ${path}`,
   );
   await page
     .locator('head link[rel="canonical"]')
     .waitFor({ state: "attached" });
   assert.deepEqual(
     await page
-      .locator('link[rel="canonical"]')
+      .locator('head link[rel="canonical"]')
       .evaluateAll((links) => links.map((link) => link.href)),
     [expectedCanonical],
     path,
   );
+  // Streaming metadata may leave an identical body tag after head hoisting.
+  // Multiple different canonical values are never acceptable.
+  const allCanonicals = await page
+    .locator('link[rel="canonical"]')
+    .evaluateAll((links) => [...new Set(links.map((link) => link.href))]);
+  assert.deepEqual(allCanonicals, [expectedCanonical], path);
   const robots = await page
     .locator('meta[name="robots"]')
-    .getAttribute("content");
-  assert.equal(robots.includes("noindex"), false, path);
+    .evaluateAll((metas) => metas.map((meta) => meta.content));
+  assert.ok(robots.length > 0, path);
+  assert.equal(
+    robots.some((value) => value.includes("noindex")),
+    false,
+    path,
+  );
   assert.ok((await page.locator("main").innerText()).trim().length > 30, path);
 }
 
@@ -123,7 +132,7 @@ test(
 );
 
 test(
-  "page canonicals and branded title are present in the initial head",
+  "page canonicals and branded title are server-rendered and consistent",
   { skip: !modulePath },
   async (t) => {
     const context = await contextFor(t);
@@ -135,7 +144,9 @@ test(
     );
     assert.equal(
       new URL(
-        await page.locator('meta[property="og:url"]').getAttribute("content"),
+        await page
+          .locator('head meta[property="og:url"]')
+          .getAttribute("content"),
       ).href,
       getCanonicalUrl("/"),
     );
@@ -235,18 +246,71 @@ test(
     if (contentPage) {
       await checkPage(page, new URL(contentPage).pathname, contentPage);
     }
-    const missing = await page.goto(
-      new URL("/policies/not-a-policy", baseUrl).href,
+    const missingId = Date.now().toString(36);
+    for (const path of [
+      `/policies/not-a-policy-${missingId}`,
+      `/product/not-a-real-product-${missingId}`,
+      `/search/not-a-real-collection-${missingId}`,
+      `/not-a-real-page-${missingId}`,
+    ]) {
+      const missing = await page.goto(new URL(path, baseUrl).href);
+      // PPR already returns 200 for a streamed notFound on the pre-change site.
+      assert.ok([200, 404].includes(missing.status()), path);
+      await page
+        .getByRole("heading", { name: "Page not found", exact: true })
+        .waitFor()
+        .catch(async (error) => {
+          t.diagnostic(
+            JSON.stringify({
+              path,
+              status: missing.status(),
+              url: page.url(),
+              body: (await page.locator("body").innerText()).slice(0, 700),
+            }),
+          );
+          throw error;
+        });
+      assert.equal(
+        await page
+          .getByRole("link", { name: "Return to Rozaya Boutique" })
+          .getAttribute("href"),
+        "/",
+      );
+      const missingRobots = await page
+        .locator('meta[name="robots"]')
+        .evaluateAll((metas) => metas.map((meta) => meta.content));
+      assert.ok(
+        missingRobots.some((value) => value.includes("noindex")),
+        path,
+      );
+      assert.equal(
+        await page.locator('link[rel="canonical"]').count(),
+        0,
+        path,
+      );
+    }
+  },
+);
+
+test(
+  "HTML-limited crawlers receive a canonical in the initial head",
+  { skip: !modulePath },
+  async (t) => {
+    const context = await contextFor(t);
+    const response = await context.request.get(new URL("/", baseUrl).href, {
+      headers: { "user-agent": "Twitterbot/1.0" },
+    });
+    assert.equal(response.status(), 200);
+    const head =
+      (await response.text()).match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1] ??
+      "";
+    assert.equal(
+      (head.match(/<link\b[^>]*rel="canonical"[^>]*>/g) ?? []).length,
+      1,
     );
-    // PPR already returns 200 for a streamed notFound on the pre-change site.
-    assert.ok([200, 404].includes(missing.status()));
-    await page
-      .getByText("This page could not be found.", { exact: true })
-      .waitFor();
-    const missingRobots = await page
-      .locator('meta[name="robots"]')
-      .evaluateAll((metas) => metas.map((meta) => meta.content));
-    assert.ok(missingRobots.some((value) => value.includes("noindex")));
-    assert.equal(await page.locator('link[rel="canonical"]').count(), 0);
+    assert.match(
+      head,
+      /<title>Rozaya Boutique \| Fine, Vintage &amp; Collectible Jewelry<\/title>/,
+    );
   },
 );
