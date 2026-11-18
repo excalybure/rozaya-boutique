@@ -1,9 +1,14 @@
 "use client";
 
-import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { GridTileImage } from "components/grid/tile";
 import { ShopifyImage } from "components/shopify-image";
 import { useRouter, useSearchParams } from "next/navigation";
+
+const arrowButtonClassName =
+  "group grid size-11 shrink-0 cursor-pointer place-items-center rounded-full text-burgundy";
+const arrowCircleClassName =
+  "grid size-8 place-items-center rounded-full border border-burgundy/20 transition-colors group-hover:border-burgundy/60 group-hover:bg-cream-dark";
 
 export function Gallery({
   images,
@@ -12,13 +17,18 @@ export function Gallery({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const imageIndex = searchParams.has("image")
-    ? parseInt(searchParams.get("image")!)
-    : 0;
+  const requestedIndex = Number(searchParams.get("image") ?? 0);
+  const imageIndex =
+    Number.isInteger(requestedIndex) &&
+    requestedIndex >= 0 &&
+    requestedIndex < images.length
+      ? requestedIndex
+      : 0;
+  const selectedImage = images[imageIndex];
 
-  const updateImage = (index: string) => {
+  const updateImage = (index: number) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("image", index);
+    params.set("image", String(index));
     router.replace(`?${params.toString()}`, { scroll: false });
   };
 
@@ -26,71 +36,89 @@ export function Gallery({
   const previousImageIndex =
     imageIndex === 0 ? images.length - 1 : imageIndex - 1;
 
-  const buttonClassName =
-    "flex h-full items-center justify-center px-6 text-burgundy transition-all ease-in-out hover:scale-110 hover:text-gold-dark";
-
   return (
-    <form>
+    <section aria-label="Product gallery">
       <div className="relative aspect-square h-full max-h-[550px] w-full overflow-hidden">
-        {images[imageIndex] && (
+        {selectedImage && (
           <ShopifyImage
             className="h-full w-full object-contain"
             fill
             sizes="(min-width: 1024px) 66vw, 100vw"
-            alt={images[imageIndex]?.altText as string}
-            src={images[imageIndex]?.src as string}
+            alt={selectedImage.altText}
+            src={selectedImage.src}
             priority={true}
           />
         )}
-
-        {images.length > 1 ? (
-          <div className="absolute bottom-[15%] flex w-full justify-center">
-            <div className="mx-auto flex h-11 items-center border border-burgundy/15 bg-cream/90 text-burgundy backdrop-blur-sm">
-              <button
-                formAction={() => updateImage(previousImageIndex.toString())}
-                aria-label="Previous product image"
-                className={buttonClassName}
-              >
-                <ArrowLeftIcon className="h-5" />
-              </button>
-              <div className="mx-1 h-6 w-px bg-burgundy/20"></div>
-              <button
-                formAction={() => updateImage(nextImageIndex.toString())}
-                aria-label="Next product image"
-                className={buttonClassName}
-              >
-                <ArrowRightIcon className="h-5" />
-              </button>
-            </div>
-          </div>
-        ) : null}
       </div>
 
-      {images.length > 1 ? (
-        <ul className="my-12 flex items-center flex-wrap justify-center gap-2 overflow-auto py-1 lg:mb-0">
-          {images.map((image, index) => {
-            const isActive = index === imageIndex;
+      {images.length > 1 && (
+        <div className="mt-4 mb-8 lg:mb-0">
+          <div className="flex items-center justify-center gap-1 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => updateImage(previousImageIndex)}
+              aria-label="Previous product image"
+              className={arrowButtonClassName}
+            >
+              <span className={arrowCircleClassName}>
+                <ChevronLeftIcon className="size-4" aria-hidden="true" />
+              </span>
+            </button>
 
-            return (
-              <li key={image.src} className="h-20 w-20">
-                <button
-                  formAction={() => updateImage(index.toString())}
-                  aria-label="Select product image"
-                  className="h-full w-full"
-                >
-                  <GridTileImage
-                    alt={image.altText}
-                    src={image.src}
-                    width={80}
-                    height={80}
-                    active={isActive}
-                  />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
-    </form>
+            <ul
+              role="list"
+              aria-label="Product image thumbnails"
+              className="flex min-w-0 gap-1 sm:gap-2"
+            >
+              {images.map((image, index) => {
+                const isActive = index === imageIndex;
+
+                return (
+                  <li key={image.src} className="w-20 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => updateImage(index)}
+                      aria-label={`Select product image ${index + 1}`}
+                      aria-pressed={isActive}
+                      className="block aspect-square w-full cursor-pointer"
+                    >
+                      <GridTileImage
+                        alt=""
+                        src={image.src}
+                        width={80}
+                        height={80}
+                        active={isActive}
+                      />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+
+            <button
+              type="button"
+              onClick={() => updateImage(nextImageIndex)}
+              aria-label="Next product image"
+              className={arrowButtonClassName}
+            >
+              <span className={arrowCircleClassName}>
+                <ChevronRightIcon className="size-4" aria-hidden="true" />
+              </span>
+            </button>
+          </div>
+          <p
+            role="status"
+            className="mt-2 text-center text-xs tracking-wider text-burgundy/80 tabular-nums"
+          >
+            <span className="sr-only">
+              Photo {imageIndex + 1} of {images.length}
+            </span>
+            <span aria-hidden="true">
+              {imageIndex + 1} / {images.length}
+            </span>
+          </p>
+        </div>
+      )}
+    </section>
   );
 }

@@ -72,28 +72,118 @@ async function checkImage(image) {
 }
 
 test(
-  "gallery loads responsive Shopify images and switches to the selected photo",
+  "gallery loads responsive Shopify images and supports chevrons and keyboard selection",
   { skip: !modulePath },
   async (t) => {
     const page = await openPage(t, productPath, { width: 1280, height: 900 });
-    const gallery = page.locator("form").filter({
-      has: page.getByRole("button", { name: "Next product image" }),
-    });
+    const gallery = page.getByRole("region", { name: "Product gallery" });
     const main = gallery.locator("img").first();
-    const thumbnails = gallery.getByRole("button", {
-      name: "Select product image",
+    const thumbnails = gallery
+      .getByRole("list", { name: "Product image thumbnails" })
+      .getByRole("button");
+    const previous = gallery.getByRole("button", {
+      name: "Previous product image",
     });
+    const next = gallery.getByRole("button", { name: "Next product image" });
 
     const initialPhoto = await checkImage(main);
     const firstThumbnail = await checkImage(thumbnails.first().locator("img"));
     const secondThumbnail = await checkImage(thumbnails.nth(1).locator("img"));
+    const lastThumbnail = await checkImage(thumbnails.last().locator("img"));
+    const imageCount = await thumbnails.count();
     assert.equal(firstThumbnail.pathname, initialPhoto.pathname);
     assert.ok(resizeWidth(firstThumbnail) < resizeWidth(initialPhoto));
     assert.notEqual(secondThumbnail.pathname, initialPhoto.pathname);
 
-    await thumbnails.nth(1).click();
+    await previous.click();
+    await page.waitForURL(
+      (url) => url.searchParams.get("image") === String(imageCount - 1),
+    );
+    assert.equal((await checkImage(main)).pathname, lastThumbnail.pathname);
+    assert.equal(await thumbnails.last().getAttribute("aria-pressed"), "true");
+
+    await next.click();
+    await page.waitForURL((url) => url.searchParams.get("image") === "0");
+    assert.equal((await checkImage(main)).pathname, firstThumbnail.pathname);
+
+    await thumbnails.nth(1).press("Enter");
     await page.waitForURL((url) => url.searchParams.get("image") === "1");
     assert.equal((await checkImage(main)).pathname, secondThumbnail.pathname);
+    assert.equal(
+      await gallery.getByRole("button", { pressed: true }).count(),
+      1,
+    );
+    assert.equal(await thumbnails.nth(1).getAttribute("aria-pressed"), "true");
+    assert.ok(
+      await gallery
+        .getByRole("status")
+        .getByText(`2 / ${imageCount}`, { exact: true })
+        .isVisible(),
+    );
+  },
+);
+
+test(
+  "gallery chevrons flank a single non-scrolling row below the photo",
+  { skip: !modulePath },
+  async (t) => {
+    const page = await openPage(t, productPath, { width: 1280, height: 900 });
+    const gallery = page.getByRole("region", { name: "Product gallery" });
+    const photo = gallery.locator("img").first();
+    const strip = gallery.getByRole("list", {
+      name: "Product image thumbnails",
+    });
+    const previous = gallery.getByRole("button", {
+      name: "Previous product image",
+    });
+    const next = gallery.getByRole("button", { name: "Next product image" });
+
+    for (const width of [1280, 1024, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      const overflow = await strip.evaluate((list) => [
+        list.scrollWidth - list.clientWidth,
+        list.scrollHeight - list.clientHeight,
+      ]);
+      assert.deepEqual(
+        overflow,
+        [0, 0],
+        `${width}px: thumbnail strip overflow`,
+      );
+
+      const [image, left, row, right] = await Promise.all(
+        [photo, previous, strip, next].map((element) => element.boundingBox()),
+      );
+      assert.ok(image && left && row && right, `${width}px: visible controls`);
+      const imageBottom = image.y + image.height;
+      assert.ok(
+        [left, row, right].every((box) => box.y >= imageBottom),
+        `${width}px: all controls below the image`,
+      );
+      assert.ok(
+        left.x + left.width <= row.x && row.x + row.width <= right.x,
+        `${width}px: arrows flank the thumbnails`,
+      );
+      assert.ok(
+        left.x >= 0 && right.x + right.width <= width,
+        `${width}px: controls fit`,
+      );
+
+      const buttons = await strip
+        .getByRole("button")
+        .evaluateAll((thumbnails) =>
+          thumbnails.map((button) => {
+            const { top, width } = button.getBoundingClientRect();
+            return { top, width };
+          }),
+        );
+      assert.ok(buttons.length > 1);
+      assert.ok(
+        buttons.every(
+          (button) => button.top === buttons[0].top && button.width >= 24,
+        ),
+        `${width}px: thumbnails stay in one row with usable targets`,
+      );
+    }
   },
 );
 

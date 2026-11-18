@@ -75,6 +75,10 @@ including gallery photos, thumbnails, product cards, and the cart. Vercel's imag
 optimizer is not used for these images. Local brand and editorial images still
 use their existing Next.js image handling.
 
+For products with multiple photos, the gallery shows up to five thumbnails in a
+single row with previous and next chevrons on either side. The row fits narrow
+screens without its own scrollbar, and no controls cover the main photo.
+
 To check real image loads and gallery navigation against a running app, set
 `SHOPIFY_IMAGES_PLAYWRIGHT_MODULE` to an external Playwright `index.mjs` and run
 `node --test tests/shopify-images-browser.test.mjs`. The test defaults to
