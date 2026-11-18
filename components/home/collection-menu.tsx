@@ -1,6 +1,4 @@
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
-import clsx from "clsx";
-import { jewelrySets } from "lib/categories";
 import { getCollectionNavigation } from "lib/collection-navigation";
 import Link from "next/link";
 
@@ -19,12 +17,7 @@ function CollectionLinks({
         <li key={path}>
           <Link
             href={path}
-            className={clsx(
-              "block w-fit py-2 font-sans text-sm leading-snug underline-offset-4 hover:text-burgundy hover:underline lg:py-1.5",
-              path === jewelrySets.href
-                ? "font-semibold text-burgundy"
-                : "text-charcoal/75",
-            )}
+            className="block w-fit py-2 font-sans text-sm leading-snug text-charcoal/75 underline-offset-4 hover:text-burgundy hover:underline lg:py-1.5"
           >
             {title}
           </Link>
