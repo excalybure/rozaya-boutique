@@ -35,6 +35,10 @@ html {
   color: var(--color-charcoal);
 }
 
+html:has(dialog[data-product-photo-lightbox][open]) {
+  overflow: hidden;
+}
+
 body {
   min-height: 100vh;
   background: var(--color-cream);

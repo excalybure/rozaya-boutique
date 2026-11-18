@@ -1,22 +1,26 @@
 "use client";
 
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowsPointingOutIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "@heroicons/react/24/outline";
 import { GridTileImage } from "components/grid/tile";
 import { ShopifyImage } from "components/shopify-image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useRef, useState } from "react";
+import { PhotoLightbox, type GalleryPhoto } from "./photo-lightbox";
 
 const arrowButtonClassName =
   "group grid size-11 shrink-0 cursor-pointer place-items-center rounded-full text-burgundy";
 const arrowCircleClassName =
   "grid size-8 place-items-center rounded-full border border-burgundy/20 transition-colors group-hover:border-burgundy/60 group-hover:bg-cream-dark";
 
-export function Gallery({
-  images,
-}: {
-  images: { src: string; altText: string }[];
-}) {
+export function Gallery({ images }: { images: GalleryPhoto[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const openButton = useRef<HTMLButtonElement>(null);
+  const [lightboxStart, setLightboxStart] = useState<number | null>(null);
   const requestedIndex = Number(searchParams.get("image") ?? 0);
   const imageIndex =
     Number.isInteger(requestedIndex) &&
@@ -38,8 +42,15 @@ export function Gallery({
 
   return (
     <section aria-label="Product gallery">
-      <div className="relative aspect-square h-full max-h-[550px] w-full overflow-hidden">
-        {selectedImage && (
+      {selectedImage ? (
+        <button
+          ref={openButton}
+          type="button"
+          aria-haspopup="dialog"
+          aria-label="Enlarge photo"
+          onClick={() => setLightboxStart(imageIndex)}
+          className="relative block aspect-square h-full max-h-[550px] w-full cursor-zoom-in overflow-hidden"
+        >
           <ShopifyImage
             className="h-full w-full object-contain"
             fill
@@ -48,8 +59,14 @@ export function Gallery({
             src={selectedImage.src}
             priority={true}
           />
-        )}
-      </div>
+          <span className="absolute right-3 bottom-3 inline-flex min-h-9 items-center gap-2 bg-cream px-3 text-xs text-burgundy shadow-sm">
+            <ArrowsPointingOutIcon className="size-4" aria-hidden="true" />
+            Enlarge photo
+          </span>
+        </button>
+      ) : (
+        <div className="relative aspect-square h-full max-h-[550px] w-full overflow-hidden" />
+      )}
 
       {images.length > 1 && (
         <div className="mt-4 mb-8 lg:mb-0">
@@ -118,6 +135,17 @@ export function Gallery({
             </span>
           </p>
         </div>
+      )}
+      {lightboxStart !== null && (
+        <PhotoLightbox
+          images={images}
+          initialIndex={lightboxStart}
+          onClose={(index) => {
+            setLightboxStart(null);
+            if (index !== imageIndex) updateImage(index);
+            openButton.current?.focus({ preventScroll: true });
+          }}
+        />
       )}
     </section>
   );

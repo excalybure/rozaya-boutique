@@ -79,7 +79,10 @@ use their existing Next.js image handling.
 
 For products with multiple photos, the gallery shows up to five thumbnails in a
 single row with previous and next chevrons on either side. The row fits narrow
-screens without its own scrollbar, and no controls cover the main photo.
+screens without its own scrollbar. Click the main photo to open a lightbox that
+loads the original Shopify image. Use **Actual size (1:1)** to view its original
+pixels, then scroll to inspect detail. In fit-to-screen mode, the left and right
+arrow keys switch photos; Escape closes the lightbox.
 
 To check real image loads and gallery navigation against a running app, set
 `SHOPIFY_IMAGES_PLAYWRIGHT_MODULE` to an external Playwright `index.mjs` and run
