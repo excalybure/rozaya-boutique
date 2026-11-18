@@ -82,8 +82,9 @@ on the fallback page.
 
 Shopify product images load directly from `cdn.shopify.com` at responsive widths,
 including gallery photos, thumbnails, product cards, and the cart. Vercel's image
-optimizer is not used for these images. Local brand and editorial images still
-use their existing Next.js image handling.
+optimizer is not used for these images. The homepage's precompressed WebP
+category tiles also bypass the optimizer and load directly from `public/images`.
+Other local brand and editorial images keep their existing Next.js image handling.
 
 For products with multiple photos, the gallery shows up to five thumbnails in a
 single row with previous and next chevrons on either side. The row fits narrow
