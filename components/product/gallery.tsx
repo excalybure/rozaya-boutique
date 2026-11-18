@@ -2,7 +2,7 @@
 
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { GridTileImage } from "components/grid/tile";
-import Image from "next/image";
+import { ShopifyImage } from "components/shopify-image";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export function Gallery({
@@ -33,7 +33,7 @@ export function Gallery({
     <form>
       <div className="relative aspect-square h-full max-h-[550px] w-full overflow-hidden">
         {images[imageIndex] && (
-          <Image
+          <ShopifyImage
             className="h-full w-full object-contain"
             fill
             sizes="(min-width: 1024px) 66vw, 100vw"

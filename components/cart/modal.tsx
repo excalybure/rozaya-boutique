@@ -5,9 +5,9 @@ import { Dialog, Transition } from "@headlessui/react";
 import { ShoppingCartIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import LoadingDots from "components/loading-dots";
 import Price from "components/price";
+import { ShopifyImage } from "components/shopify-image";
 import { DEFAULT_OPTION } from "lib/constants";
 import { createUrl } from "lib/utils";
-import Image from "next/image";
 import Link from "next/link";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
@@ -130,7 +130,7 @@ export default function CartModal() {
                               </div>
                               <div className="flex flex-row">
                                 <div className="relative h-16 w-16 overflow-hidden border border-burgundy/10 bg-cream-dark">
-                                  <Image
+                                  <ShopifyImage
                                     className="h-full w-full object-cover"
                                     width={64}
                                     height={64}

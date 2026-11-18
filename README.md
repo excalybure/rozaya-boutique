@@ -68,6 +68,20 @@ after the storefront cache updates. Category navigation expects collections with
 the handles `rings`, `necklaces`, `bracelets`, `earrings`, `art-deco`,
 `victorian`, `diamond` and `under-500`.
 
+### Product images
+
+Shopify product images load directly from `cdn.shopify.com` at responsive widths,
+including gallery photos, thumbnails, product cards, and the cart. Vercel's image
+optimizer is not used for these images. Local brand and editorial images still
+use their existing Next.js image handling.
+
+To check real image loads and gallery navigation against a running app, set
+`SHOPIFY_IMAGES_PLAYWRIGHT_MODULE` to an external Playwright `index.mjs` and run
+`node --test tests/shopify-images-browser.test.mjs`. The test defaults to
+`http://localhost:3015`; set `SHOPIFY_IMAGES_TEST_BASE_URL` for a different origin.
+Use `SHOPIFY_IMAGES_TEST_PRODUCT_PATH` to test a different multi-photo product or
+`SHOPIFY_IMAGES_BROWSER_EXECUTABLE` to use a specific Chromium executable.
+
 ## Custom domains
 
 See [Custom domain setup](docs/custom-domains.md) for the recorded Vercel DNS

@@ -1,6 +1,6 @@
 import clsx from "clsx";
+import { ShopifyImage } from "components/shopify-image";
 import type { Product } from "lib/shopify/types";
-import Image from "next/image";
 import Price from "../price";
 import Label from "../label";
 
@@ -134,7 +134,7 @@ export function GridTileImage({
   active?: boolean;
   label?: LabelProps;
   product?: ProductCardProduct;
-} & React.ComponentProps<typeof Image>) {
+} & React.ComponentProps<typeof ShopifyImage>) {
   const compareAtPrice = getCompareAtPrice(product, label);
   const priceAmount = Number.parseFloat(label?.amount ?? "");
   const compareAtAmount = Number.parseFloat(compareAtPrice ?? "");
@@ -161,7 +161,7 @@ export function GridTileImage({
         "h-full": !label,
       })}
     >
-      <Image
+      <ShopifyImage
         className={clsx("relative h-full w-full object-cover", {
           "transition-transform duration-500 group-hover:scale-105":
             isInteractive,
@@ -244,7 +244,7 @@ export function GridTileImage({
       )}
     >
       {props.src ? (
-        <Image
+        <ShopifyImage
           className={clsx("relative h-full w-full object-contain", {
             "transition duration-300 ease-in-out group-hover:scale-105":
               isInteractive,
