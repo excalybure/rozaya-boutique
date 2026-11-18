@@ -41,8 +41,10 @@ lockfile. If port 3000 is occupied, Next.js may choose another port; use the
 With the server running and Shopify configured:
 
 1. Open `/` and check the homepage images, category links and mobile navigation.
-2. Open `/search`, search for a product, and try sorting the results.
-3. Open a category such as `/search/rings`, then open a product detail page.
+2. Open `/search` and try Next and Previous (up to 30 products per page).
+   Search or change the sort to start again on the first page.
+3. Open a category such as `/search/rings` and try filtering it. Next and Previous
+   retain the filters. Then open a product detail page.
 4. For an available product, select any required options, add it to the cart,
    and check quantity changes and removal.
 
@@ -98,8 +100,10 @@ their paths and query values retained. Localhost, preview deployments, the
 production `*.vercel.app` hostname and Shopify checkout are not redirected.
 Page canonicals, metadata and the sitemap consistently use the chosen origin,
 not Vercel's automatically selected production hostname. Search text (`q`) is
-retained in search canonicals; tracking/sort/filter/variant URL variations use
-the underlying page canonical. Existing noindex rules are unchanged.
+retained in search canonicals, and default-order catalog pages use their own page
+number in the canonical URL. Sort/filter variations use the underlying listing
+canonical. The sitemap includes all visible Shopify product URLs, not just the
+first catalog page. Existing noindex rules are unchanged.
 
 ```sh
 node --test tests/seo.test.mjs tests/privacy.test.mjs tests/privacy-proxy.test.mjs

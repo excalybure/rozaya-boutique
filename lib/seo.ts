@@ -21,13 +21,22 @@ export function getCanonicalUrl(pathname: string): string {
   return url.toString();
 }
 
-export function getSearchCanonicalUrl(query?: string): string {
-  const url = new URL(getCanonicalUrl("/search"));
-  // Unlike tracking/sort parameters, q changes the search page's actual content.
+export function getCatalogCanonicalUrl(
+  pathname: string,
+  page = 1,
+  query?: string,
+): string {
+  const url = new URL(getCanonicalUrl(pathname));
+  // Search text and page number define distinct catalog results.
   if (query) {
     url.searchParams.set("q", query);
   }
+  if (page > 1) url.searchParams.set("page", String(page));
   return url.toString();
+}
+
+export function getSearchCanonicalUrl(query?: string, page = 1): string {
+  return getCatalogCanonicalUrl("/search", page, query);
 }
 
 export function getCanonicalRedirects() {

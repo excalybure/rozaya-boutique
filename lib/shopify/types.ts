@@ -1,3 +1,5 @@
+import type { ProductPageInfo } from "lib/catalog-pagination";
+
 export type Maybe<T> = T | null;
 
 export type Connection<T> = {
@@ -40,8 +42,12 @@ export type Collection = ShopifyCollection & {
   path: string;
 };
 
-export type CollectionProductsResult = {
+export type ProductPageResult = {
   products: Product[];
+  hasNextPage: boolean;
+};
+
+export type CollectionProductsResult = ProductPageResult & {
   filters: Filter[];
 };
 
@@ -237,16 +243,14 @@ export type ShopifyCollectionOperation = {
 export type ShopifyCollectionProductsOperation = {
   data: {
     collection: {
-      products: Connection<ShopifyProduct> & {
-        filters: Filter[];
+      products: ProductPageConnection & {
+        filters?: Filter[];
       };
-    };
+    } | null;
   };
-  variables: {
+  variables: ProductPageVariables & {
     handle: string;
     filters?: Record<string, unknown>[];
-    reverse?: boolean;
-    sortKey?: string;
   };
 };
 
@@ -297,13 +301,32 @@ export type ShopifyProductRecommendationsOperation = {
   };
 };
 
+type ProductPageConnection = Partial<Connection<ShopifyProduct>> & {
+  pageInfo: ProductPageInfo;
+};
+
+type ProductPageVariables = {
+  first: number;
+  after?: string;
+  includeProducts?: boolean;
+  reverse?: boolean;
+  sortKey?: string;
+};
+
 export type ShopifyProductsOperation = {
   data: {
-    products: Connection<ShopifyProduct>;
+    products: ProductPageConnection;
   };
-  variables: {
+  variables: ProductPageVariables & {
     query?: string;
-    reverse?: boolean;
-    sortKey?: string;
   };
+};
+
+type SitemapProduct = Pick<ShopifyProduct, "handle" | "updatedAt" | "tags">;
+
+export type ShopifySitemapProductsOperation = {
+  data: {
+    products: { nodes: SitemapProduct[]; pageInfo: ProductPageInfo };
+  };
+  variables: { first: number; after?: string };
 };

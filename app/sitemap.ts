@@ -1,7 +1,7 @@
 import {
   getCollections,
   getPages,
-  getProducts,
+  getSitemapProducts,
   isShopifyConfigured,
 } from "lib/shopify";
 import { getCanonicalUrl } from "lib/seo";
@@ -30,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   );
 
-  const productsPromise = getProducts({}).then((products) =>
+  const productsPromise = getSitemapProducts().then((products) =>
     products.map((product) => ({
       url: getCanonicalUrl(`/product/${encodeURIComponent(product.handle)}`),
       lastModified: product.updatedAt,

@@ -107,6 +107,7 @@ function FilterGroup({ filter }: { filter: Filter }) {
 
     params.delete(param.key);
     nextValues.forEach((nextValue) => params.append(param.key, nextValue));
+    params.delete("page");
 
     const query = params.toString();
     router.push(query ? `${pathname}?${query}` : pathname);

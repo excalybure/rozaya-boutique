@@ -42,15 +42,23 @@ export const getCollectionProductsQuery = /* GraphQL */ `
     $filters: [ProductFilter!]
     $sortKey: ProductCollectionSortKeys
     $reverse: Boolean
+    $first: Int!
+    $after: String
+    $includeProducts: Boolean! = true
   ) {
     collection(handle: $handle) {
       products(
         sortKey: $sortKey
         reverse: $reverse
         filters: $filters
-        first: 100
+        first: $first
+        after: $after
       ) {
-        filters {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        filters @include(if: $includeProducts) {
           id
           label
           type
@@ -61,7 +69,7 @@ export const getCollectionProductsQuery = /* GraphQL */ `
             input
           }
         }
-        edges {
+        edges @include(if: $includeProducts) {
           node {
             ...product
           }

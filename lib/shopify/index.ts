@@ -1,4 +1,9 @@
 import {
+  CATALOG_PAGE_SIZE,
+  getCatalogPageStart,
+  SHOPIFY_CONNECTION_LIMIT,
+} from "lib/catalog-pagination";
+import {
   HIDDEN_PRODUCT_TAG,
   SHOPIFY_GRAPHQL_API_ENDPOINT,
   TAGS,
@@ -30,6 +35,8 @@ import {
   getProductQuery,
   getProductRecommendationsQuery,
   getProductsQuery,
+  getSitemapProductsQuery,
+  searchProductsQuery,
 } from "./queries/product";
 import {
   Cart,
@@ -40,6 +47,7 @@ import {
   Menu,
   Page,
   Product,
+  ProductPageResult,
   ShopifyAddToCartOperation,
   ShopifyCart,
   ShopifyCartOperation,
@@ -56,6 +64,7 @@ import {
   ShopifyProductRecommendationsOperation,
   ShopifyProductsOperation,
   ShopifyRemoveFromCartOperation,
+  ShopifySitemapProductsOperation,
   ShopifyUpdateCartOperation,
 } from "./types";
 
@@ -334,27 +343,32 @@ export async function getCollectionProducts({
   reverse?: boolean;
   sortKey?: string;
 }): Promise<Product[]> {
-  const { products } = await getCollectionProductsWithFilters({
+  const result = await getCollectionProductsWithFilters({
     collection,
     filters,
     reverse,
     sortKey,
+    pageSize: 100,
   });
 
-  return products;
+  return result?.products ?? [];
 }
 
 export async function getCollectionProductsWithFilters({
   collection,
   filters,
+  page = 1,
+  pageSize = CATALOG_PAGE_SIZE,
   reverse,
   sortKey,
 }: {
   collection: string;
   filters?: Record<string, unknown>[];
+  page?: number;
+  pageSize?: number;
   reverse?: boolean;
   sortKey?: string;
-}): Promise<CollectionProductsResult> {
+}): Promise<CollectionProductsResult | null> {
   "use cache";
   cacheTag(TAGS.collections, TAGS.products);
   if (collection === "hidden-homepage-featured-items") {
@@ -367,35 +381,55 @@ export async function getCollectionProductsWithFilters({
     console.log(
       `Skipping getCollectionProducts for '${collection}' - Shopify not configured`,
     );
-    return {
-      products: [],
-      filters: [],
-    };
+    return page === 1
+      ? { products: [], filters: [], hasNextPage: false }
+      : null;
   }
 
-  const res = await shopifyFetch<ShopifyCollectionProductsOperation>({
-    query: getCollectionProductsQuery,
-    variables: {
-      handle: collection,
-      filters,
-      reverse,
-      sortKey: sortKey === "CREATED_AT" ? "CREATED" : sortKey,
-    },
-  });
+  async function fetchProducts(
+    first: number,
+    after?: string,
+    includeProducts = true,
+  ) {
+    const res = await shopifyFetch<ShopifyCollectionProductsOperation>({
+      query: getCollectionProductsQuery,
+      variables: {
+        handle: collection,
+        filters,
+        reverse,
+        sortKey: sortKey === "CREATED_AT" ? "CREATED" : sortKey,
+        first,
+        after,
+        includeProducts,
+      },
+    });
+    return res.body.data.collection?.products;
+  }
 
-  if (!res.body.data.collection) {
+  const start = await getCatalogPageStart(
+    page,
+    pageSize,
+    async (first, after) =>
+      (await fetchProducts(first, after, false))?.pageInfo,
+  );
+  if (!start) return null;
+
+  const productConnection = await fetchProducts(pageSize, start.after);
+  if (!productConnection) {
     console.log(`No collection found for \`${collection}\``);
-    return {
-      products: [],
-      filters: [],
-    };
+    return page === 1
+      ? { products: [], filters: [], hasNextPage: false }
+      : null;
   }
-
-  const productConnection = res.body.data.collection.products;
+  const { edges, pageInfo } = productConnection;
+  if (!edges)
+    throw new Error("Shopify did not return collection product edges.");
+  if (page > 1 && !edges.length) return null;
 
   return {
-    products: reshapeProducts(removeEdgesAndNodes(productConnection)),
+    products: reshapeProducts(removeEdgesAndNodes({ edges })),
     filters: productConnection.filters ?? [],
+    hasNextPage: pageInfo.hasNextPage,
   };
 }
 
@@ -542,33 +576,99 @@ export async function getProductRecommendations(
   return reshapeProducts(res.body.data.productRecommendations);
 }
 
-export async function getProducts({
+export async function getProductPage({
+  page,
   query,
   reverse,
   sortKey,
 }: {
+  page: number;
   query?: string;
   reverse?: boolean;
   sortKey?: string;
-}): Promise<Product[]> {
+}): Promise<ProductPageResult | null> {
   "use cache";
   cacheTag(TAGS.products);
   cacheLife("days");
 
   if (!isShopifyConfigured) {
-    return [];
+    return page === 1 ? { products: [], hasNextPage: false } : null;
   }
 
-  const res = await shopifyFetch<ShopifyProductsOperation>({
-    query: getProductsQuery,
-    variables: {
-      query,
-      reverse,
-      sortKey,
-    },
-  });
+  const relevance = sortKey === "RELEVANCE";
+  const searchByRelevance = relevance && Boolean(query);
+  // The products connection's relevance cursors can skip or repeat entries.
+  // Use a stable catalog order unless there is a keyword to rank against.
+  async function fetchProducts(
+    first: number,
+    after?: string,
+    includeProducts = true,
+  ) {
+    const paging = { first, after, includeProducts };
+    const res = await shopifyFetch<ShopifyProductsOperation>({
+      query: searchByRelevance ? searchProductsQuery : getProductsQuery,
+      variables: searchByRelevance
+        ? { ...paging, query }
+        : { ...paging, query, reverse, sortKey: relevance ? "ID" : sortKey },
+    });
+    return res.body.data.products;
+  }
 
-  return reshapeProducts(removeEdgesAndNodes(res.body.data.products));
+  const start = await getCatalogPageStart(
+    page,
+    CATALOG_PAGE_SIZE,
+    async (first, after) => (await fetchProducts(first, after, false)).pageInfo,
+    // Search ranking can vary with batch size, so match the displayed page size.
+    searchByRelevance ? CATALOG_PAGE_SIZE : SHOPIFY_CONNECTION_LIMIT,
+  );
+  if (!start) return null;
+
+  const { edges, pageInfo } = await fetchProducts(
+    CATALOG_PAGE_SIZE,
+    start.after,
+  );
+  if (!edges) throw new Error("Shopify did not return product edges.");
+  if (page > 1 && !edges.length) return null;
+
+  return {
+    products: reshapeProducts(removeEdgesAndNodes({ edges })),
+    hasNextPage: pageInfo.hasNextPage,
+  };
+}
+
+export async function getSitemapProducts(): Promise<
+  Pick<Product, "handle" | "updatedAt">[]
+> {
+  "use cache";
+  cacheTag(TAGS.products);
+  cacheLife("days");
+
+  if (!isShopifyConfigured) return [];
+
+  const products: Pick<Product, "handle" | "updatedAt">[] = [];
+  const seenCursors = new Set<string>();
+  let after: string | undefined;
+  while (true) {
+    const res = await shopifyFetch<ShopifySitemapProductsOperation>({
+      query: getSitemapProductsQuery,
+      variables: { first: SHOPIFY_CONNECTION_LIMIT, after },
+    });
+    const { nodes, pageInfo } = res.body.data.products;
+    for (const { handle, updatedAt, tags } of nodes) {
+      if (!tags.includes(HIDDEN_PRODUCT_TAG))
+        products.push({ handle, updatedAt });
+    }
+    if (!pageInfo.hasNextPage) return products;
+    if (
+      !pageInfo.endCursor ||
+      seenCursors.has(pageInfo.endCursor) ||
+      !nodes.length
+    ) {
+      throw new Error("Shopify sitemap pagination did not advance.");
+    }
+    after = pageInfo.endCursor;
+    seenCursors.add(after);
+  }
 }
 
 // This is called from `app/api/revalidate.ts` so providers can control revalidation logic.

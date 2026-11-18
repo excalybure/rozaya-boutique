@@ -1,8 +1,14 @@
 import Filters from "components/layout/search/filters";
 import Grid from "components/grid";
 import ProductGridItems from "components/layout/product-grid-items";
-import { defaultSort, sorting } from "lib/constants";
-import { getCanonicalUrl } from "lib/seo";
+import CatalogPagination from "components/layout/search/pagination";
+import {
+  getCatalogPage,
+  getCatalogPageUrl,
+  type CatalogSearchParams,
+} from "lib/catalog-pagination";
+import { getCatalogSort } from "lib/constants";
+import { getCatalogCanonicalUrl } from "lib/seo";
 import {
   getCollection,
   getCollectionProductsWithFilters,
@@ -10,9 +16,12 @@ import {
 } from "lib/shopify";
 import { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
-type SearchParams = { [key: string]: string | string[] | undefined };
+type CategoryPageProps = {
+  params: Promise<{ collection: string }>;
+  searchParams?: Promise<CatalogSearchParams>;
+};
 
 function getSearchParamValues(value: string | string[] | undefined) {
   if (!value) return [];
@@ -20,7 +29,7 @@ function getSearchParamValues(value: string | string[] | undefined) {
   return Array.isArray(value) ? value : [value];
 }
 
-function getProductFilters(searchParams: SearchParams) {
+function getProductFilters(searchParams: CatalogSearchParams) {
   const filters: Record<string, unknown>[] = [];
 
   for (const [key, value] of Object.entries(searchParams)) {
@@ -71,21 +80,28 @@ function titleFromHandle(handle: string) {
     .join(" ");
 }
 
-export async function generateMetadata(props: {
-  params: Promise<{ collection: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: CategoryPageProps,
+): Promise<Metadata> {
   const params = await props.params;
+  const searchParams = (await props.searchParams) ?? {};
   const collection = await getCollection(params.collection);
 
   if (!collection && isShopifyConfigured) return notFound();
 
   const title = collection?.title || titleFromHandle(params.collection);
+  const canonicalPage =
+    getCatalogSort(searchParams.sort).slug ||
+    getProductFilters(searchParams).length
+      ? 1
+      : getCatalogPage(searchParams.page);
 
   return {
     title: collection?.seo?.title || title,
     alternates: {
-      canonical: getCanonicalUrl(
+      canonical: getCatalogCanonicalUrl(
         `/search/${encodeURIComponent(params.collection)}`,
+        canonicalPage,
       ),
     },
     description:
@@ -95,25 +111,25 @@ export async function generateMetadata(props: {
   };
 }
 
-export default async function CategoryPage(props: {
-  params: Promise<{ collection: string }>;
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const searchParams = ((await props.searchParams) ?? {}) as SearchParams;
+export default async function CategoryPage(props: CategoryPageProps) {
+  const searchParams = (await props.searchParams) ?? {};
   const params = await props.params;
   const collection = await getCollection(params.collection);
 
   if (!collection && isShopifyConfigured) notFound();
 
-  const { sort } = searchParams as { [key: string]: string };
-  const { sortKey, reverse } =
-    sorting.find((item) => item.slug === sort) || defaultSort;
-  const { products, filters } = await getCollectionProductsWithFilters({
+  const pathname = `/search/${encodeURIComponent(params.collection)}`;
+  const page = getCatalogPage(searchParams.page);
+  const { sortKey, reverse } = getCatalogSort(searchParams.sort);
+  const result = await getCollectionProductsWithFilters({
     collection: params.collection,
     filters: getProductFilters(searchParams),
+    page,
     sortKey,
     reverse,
   });
+  if (!result) redirect(getCatalogPageUrl(pathname, searchParams, 1));
+  const { products, filters, hasNextPage } = result;
   const title = collection?.title || titleFromHandle(params.collection);
 
   return (
@@ -139,7 +155,7 @@ export default async function CategoryPage(props: {
             <Grid>
               <ProductGridItems products={products} />
             </Grid>
-          ) : (
+          ) : page === 1 && !hasNextPage ? (
             <div className="max-w-xl py-6">
               <h2 className="font-heading text-2xl text-burgundy">
                 The collection is being prepared.
@@ -155,7 +171,17 @@ export default async function CategoryPage(props: {
                 Shop all jewelry
               </Link>
             </div>
+          ) : (
+            <p className="font-sans text-sm text-charcoal/70">
+              No pieces to display on this page.
+            </p>
           )}
+          <CatalogPagination
+            pathname={pathname}
+            searchParams={searchParams}
+            page={page}
+            hasNextPage={hasNextPage}
+          />
         </div>
       </div>
     </section>

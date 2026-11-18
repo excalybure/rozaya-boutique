@@ -1,13 +1,20 @@
 import Grid from "components/grid";
 import ProductGridItems from "components/layout/product-grid-items";
-import { defaultSort, sorting } from "lib/constants";
+import CatalogPagination from "components/layout/search/pagination";
+import {
+  getCatalogPage,
+  getCatalogPageUrl,
+  type CatalogSearchParams,
+} from "lib/catalog-pagination";
+import { getCatalogSort } from "lib/constants";
 import { getSearchCanonicalUrl } from "lib/seo";
-import { getProducts } from "lib/shopify";
+import { getProductPage } from "lib/shopify";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 type SearchPageProps = {
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams?: Promise<CatalogSearchParams>;
 };
 
 export async function generateMetadata(
@@ -17,29 +24,32 @@ export async function generateMetadata(
   const query = Array.isArray(searchParams.q)
     ? searchParams.q[0]
     : searchParams.q;
+  const canonicalPage = getCatalogSort(searchParams.sort).slug
+    ? 1
+    : getCatalogPage(searchParams.page);
   return {
     title: "Shop jewelry",
     description:
       "Browse fine, vintage and collectible jewelry at Rozaya Boutique.",
-    alternates: { canonical: getSearchCanonicalUrl(query) },
+    alternates: { canonical: getSearchCanonicalUrl(query, canonicalPage) },
   };
 }
 
 export default async function SearchPage(props: SearchPageProps) {
   const searchParams = (await props.searchParams) ?? {};
-  const sort = Array.isArray(searchParams.sort)
-    ? searchParams.sort[0]
-    : searchParams.sort;
   const searchValue = Array.isArray(searchParams.q)
     ? searchParams.q[0]
     : searchParams.q;
-  const { sortKey, reverse } =
-    sorting.find((item) => item.slug === sort) || defaultSort;
-  const products = await getProducts({
+  const page = getCatalogPage(searchParams.page);
+  const { sortKey, reverse } = getCatalogSort(searchParams.sort);
+  const result = await getProductPage({
+    page,
     sortKey,
     reverse,
-    query: searchValue,
+    query: searchValue?.trim() || undefined,
   });
+  if (!result) redirect(getCatalogPageUrl("/search", searchParams, 1));
+  const { products, hasNextPage } = result;
 
   return (
     <section className="min-h-[45vh] py-4 lg:py-0">
@@ -59,7 +69,7 @@ export default async function SearchPage(props: SearchPageProps) {
         <Grid>
           <ProductGridItems products={products} />
         </Grid>
-      ) : (
+      ) : page === 1 && !hasNextPage ? (
         <div className="max-w-xl py-6">
           <h2 className="font-heading text-2xl text-burgundy">
             {searchValue
@@ -88,7 +98,17 @@ export default async function SearchPage(props: SearchPageProps) {
             ))}
           </div>
         </div>
+      ) : (
+        <p className="font-sans text-sm text-charcoal/70">
+          No pieces to display on this page.
+        </p>
       )}
+      <CatalogPagination
+        pathname="/search"
+        searchParams={searchParams}
+        page={page}
+        hasNextPage={hasNextPage}
+      />
     </section>
   );
 }

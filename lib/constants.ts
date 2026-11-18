@@ -40,6 +40,11 @@ export const sorting: SortFilterItem[] = [
   },
 ];
 
+export function getCatalogSort(sort: string | string[] | undefined) {
+  const slug = Array.isArray(sort) ? sort[0] : sort;
+  return sorting.find((item) => item.slug === slug) || defaultSort;
+}
+
 export const TAGS = {
   collections: "collections",
   products: "products",
