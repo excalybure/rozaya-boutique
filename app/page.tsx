@@ -23,7 +23,7 @@ export const metadata = {
 
 export default function HomePage() {
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-clip">
       <Hero />
       <div className="border-y border-gold/25 bg-burgundy px-6 py-5 text-cream sm:px-10">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-2 text-center font-sans text-[10px] font-semibold uppercase tracking-[0.24em] sm:justify-between sm:text-xs">

@@ -1,13 +1,12 @@
-import { categories } from "lib/categories";
+import { allJewelry, categories } from "lib/categories";
 import { policyPages } from "lib/policies";
 import Link from "next/link";
 
 const shopLinks = [
   { title: "Shop all jewelry", href: "/search" },
-  ...categories.map((category) => ({
-    title: category.title,
-    href: category.href,
-  })),
+  ...categories
+    .filter(({ handle }) => handle !== allJewelry.handle)
+    .map(({ title, href }) => ({ title, href })),
 ];
 
 export default function Footer() {

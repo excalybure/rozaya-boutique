@@ -1,6 +1,17 @@
+export const allJewelry = {
+  handle: "all-jewelry",
+  href: "/search/all-jewelry",
+};
+
+export const jewelrySets = {
+  handle: "jewelry-sets",
+  href: "/search/jewelry-sets",
+  title: "Jewelry Sets",
+  taxonomyId: "aa-6-7",
+};
+
 export const categories = [
   {
-    number: "01",
     title: "Rings",
     description: "A detail to make your own",
     handle: "rings",
@@ -9,7 +20,6 @@ export const categories = [
     position: "object-[center_54%]",
   },
   {
-    number: "02",
     title: "Necklaces",
     description: "An everyday signature",
     handle: "necklaces",
@@ -18,7 +28,6 @@ export const categories = [
     position: "object-[center_52%]",
   },
   {
-    number: "03",
     title: "Bracelets",
     description: "Something to hold close",
     handle: "bracelets",
@@ -27,7 +36,6 @@ export const categories = [
     position: "object-[center_50%]",
   },
   {
-    number: "04",
     title: "Earrings",
     description: "For a little light",
     handle: "earrings",
@@ -36,7 +44,6 @@ export const categories = [
     position: "object-[center_48%]",
   },
   {
-    number: "05",
     title: "Art Deco",
     description: "Geometry with a glow",
     handle: "art-deco",
@@ -45,7 +52,6 @@ export const categories = [
     position: "object-[center_48%]",
   },
   {
-    number: "06",
     title: "Victorian",
     description: "Collected, never ordinary",
     handle: "victorian",
@@ -54,7 +60,6 @@ export const categories = [
     position: "object-[center_48%]",
   },
   {
-    number: "07",
     title: "Diamond",
     description: "Brilliance in every detail",
     handle: "diamond",
@@ -63,12 +68,42 @@ export const categories = [
     position: "object-center",
   },
   {
-    number: "08",
     title: "Under $500",
     description: "Small treasures to keep",
     handle: "under-500",
     href: "/search/under-500",
     image: "/images/under-500-category.png",
+    position: "object-center",
+  },
+  {
+    handle: jewelrySets.handle,
+    href: jewelrySets.href,
+    title: jewelrySets.title,
+    description: "Pieces made to go together",
+    image: "/images/jewelry-sets-category.webp",
+    position: "object-center",
+  },
+  {
+    title: "Gold Jewelry",
+    description: "A warmer kind of glow",
+    handle: "gold-jewelry",
+    href: "/search/gold-jewelry",
+    image: "/images/gold-jewelry-category.webp",
+    position: "object-[center_39%]",
+  },
+  {
+    title: "Under $2000",
+    description: "Distinctive finds to keep",
+    handle: "under-2000",
+    href: "/search/under-2000",
+    image: "/images/under-2000-category.webp",
+    position: "object-[center_41%]",
+  },
+  {
+    ...allJewelry,
+    title: "Shop All Jewelry",
+    description: "See the whole collection",
+    image: "/images/all-jewelry-category.webp",
     position: "object-center",
   },
 ] as const;

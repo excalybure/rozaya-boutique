@@ -25,7 +25,7 @@ export default function FilterList({
 }) {
   return (
     <>
-      <nav>
+      <nav aria-label={title}>
         {title ? (
           <h3 className="hidden font-sans text-[9px] font-semibold uppercase tracking-[0.18em] text-gold-dark md:block">
             {title}

@@ -2,6 +2,7 @@ import Filters from "components/layout/search/filters";
 import Grid from "components/grid";
 import ProductGridItems from "components/layout/product-grid-items";
 import CatalogPagination from "components/layout/search/pagination";
+import { allJewelry, jewelrySets } from "lib/categories";
 import {
   getCatalogPage,
   getCatalogPageUrl,
@@ -87,7 +88,12 @@ export async function generateMetadata(
   const searchParams = (await props.searchParams) ?? {};
   const collection = await getCollection(params.collection);
 
-  if (!collection && isShopifyConfigured) return notFound();
+  if (
+    !collection &&
+    params.collection !== jewelrySets.handle &&
+    isShopifyConfigured
+  )
+    return notFound();
 
   const title = collection?.title || titleFromHandle(params.collection);
   const canonicalPage =
@@ -115,15 +121,22 @@ export default async function CategoryPage(props: CategoryPageProps) {
   const searchParams = (await props.searchParams) ?? {};
   const params = await props.params;
   const collection = await getCollection(params.collection);
+  const useSetsTaxonomy =
+    !collection && params.collection === jewelrySets.handle;
 
-  if (!collection && isShopifyConfigured) notFound();
+  if (!collection && !useSetsTaxonomy && isShopifyConfigured) notFound();
 
   const pathname = `/search/${encodeURIComponent(params.collection)}`;
   const page = getCatalogPage(searchParams.page);
   const { sortKey, reverse } = getCatalogSort(searchParams.sort);
+  const productFilters = getProductFilters(searchParams);
+  if (useSetsTaxonomy) {
+    // Shopify's Storefront category filter takes the short taxonomy ID, not a GID.
+    productFilters.push({ category: { id: jewelrySets.taxonomyId } });
+  }
   const result = await getCollectionProductsWithFilters({
-    collection: params.collection,
-    filters: getProductFilters(searchParams),
+    collection: useSetsTaxonomy ? allJewelry.handle : params.collection,
+    filters: productFilters,
     page,
     sortKey,
     reverse,

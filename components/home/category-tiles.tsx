@@ -1,6 +1,8 @@
 import { categories } from "lib/categories";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
+import CollectionMenu from "./collection-menu";
 
 export function CategoryTiles() {
   return (
@@ -24,42 +26,50 @@ export function CategoryTiles() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
-          {categories.map((category) => (
-            <Link
-              key={category.handle}
-              href={category.href}
-              className="group relative block aspect-[4/5] overflow-hidden bg-cream-dark lg:aspect-square"
-            >
-              <Image
-                src={category.image}
-                alt=""
-                fill
-                sizes="(min-width: 1024px) 24vw, 48vw"
-                className={`object-cover transition-transform duration-700 group-hover:scale-[1.04] ${category.position}`}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-burgundy/85 via-burgundy/5 to-transparent transition-opacity duration-500 group-hover:from-burgundy/90" />
-              <div className="absolute inset-x-0 bottom-0 p-4 text-cream sm:p-6 lg:p-7">
-                <span className="font-sans text-[9px] tracking-[0.22em] text-gold-light sm:text-[10px]">
-                  {category.number} / ROZAYA
-                </span>
-                <h3 className="mt-2 font-heading text-xl text-cream sm:text-2xl lg:text-3xl">
-                  {category.title}
-                </h3>
-                <div className="mt-3 flex items-center justify-between border-t border-cream/35 pt-3">
-                  <span className="font-sans text-[11px] text-cream/80 sm:text-xs">
-                    {category.description}
-                  </span>
-                  <span
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(153px,16%)] lg:gap-7 xl:gap-9">
+          <div className="lg:sticky lg:top-6 lg:col-start-2 lg:row-start-1 lg:self-start">
+            <Suspense fallback={null}>
+              <CollectionMenu />
+            </Suspense>
+          </div>
+          <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 lg:col-start-1 lg:row-start-1">
+            {categories.map((category) => (
+              <li key={category.handle}>
+                <Link
+                  href={category.href}
+                  className="group relative block aspect-[4/5] bg-cream-dark md:aspect-square"
+                >
+                  <div
+                    className="pointer-events-none absolute inset-0 overflow-hidden"
                     aria-hidden="true"
-                    className="translate-x-0 font-sans text-lg text-gold-light transition-transform group-hover:translate-x-1"
                   >
-                    →
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
+                    <Image
+                      src={category.image}
+                      alt=""
+                      fill
+                      sizes="(min-width: 1440px) 260px, (min-width: 1024px) 19vw, (min-width: 768px) 23vw, 47vw"
+                      className={`object-cover motion-safe:transition-transform motion-safe:duration-700 motion-safe:group-hover:scale-[1.04] ${category.position}`}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-burgundy/85 via-burgundy/5 to-transparent" />
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 px-2.5 pb-3 text-cream [text-shadow:0_1px_3px_#240c0f8c] sm:px-4 sm:pb-4 xl:px-5 xl:pb-5">
+                    <h3 className="font-heading text-xl leading-tight text-cream! sm:text-2xl xl:text-[clamp(1.5rem,2.05vw,1.875rem)]">
+                      {category.title}
+                    </h3>
+                    <div className="mt-2 flex min-h-[2.65em] items-start justify-between gap-1 border-t border-cream/40 pt-2 font-sans text-xs leading-snug xl:text-[13px]">
+                      <span>{category.description}</span>
+                      <span
+                        aria-hidden="true"
+                        className="font-sans text-lg leading-none text-gold-light motion-safe:transition-transform motion-safe:group-hover:translate-x-1"
+                      >
+                        →
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

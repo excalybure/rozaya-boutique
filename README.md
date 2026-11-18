@@ -40,7 +40,9 @@ lockfile. If port 3000 is occupied, Next.js may choose another port; use the
 
 With the server running and Shopify configured:
 
-1. Open `/` and check the homepage images, category links and mobile navigation.
+1. Open `/#collections` and check the three rows of four tiles on desktop and the
+   collapsible Collections menu on mobile. Open Jewelry Sets from both the tile
+   and the right-hand menu to see the matching Shopify products.
 2. Open `/search` and try Next and Previous (up to 30 products per page).
    Search or change the sort to start again on the first page.
 3. Open a category such as `/search/rings` and try filtering it. Next and Previous
@@ -68,7 +70,13 @@ with images that are visible to the Headless sales channel. Add or remove
 products in Shopify Admin under Products > Collections; the section refreshes
 after the storefront cache updates. Category navigation expects collections with
 the handles `rings`, `necklaces`, `bracelets`, `earrings`, `art-deco`,
-`victorian`, `diamond` and `under-500`.
+`victorian`, `diamond`, `under-500`, `gold-jewelry`, `under-2000` and
+`all-jewelry`. `/search/jewelry-sets` uses the `jewelry-sets` collection if it is
+published to the Headless sales channel. Otherwise it filters `all-jewelry` to
+the Shopify **Jewelry Sets** product category, so no separate collection is
+required. Set the product category (not the product type) and make sure the
+product is visible to Headless and included in `all-jewelry` for it to appear
+on the fallback page.
 
 ### Product images
 

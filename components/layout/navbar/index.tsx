@@ -1,5 +1,5 @@
 import CartModal from "components/cart/modal";
-import { categories } from "lib/categories";
+import { allJewelry, categories } from "lib/categories";
 import { Menu } from "lib/shopify/types";
 import { ShoppingBagIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
@@ -10,10 +10,9 @@ import Search, { SearchSkeleton } from "./search";
 
 const shopAll: Menu = { title: "Shop all", path: "/search" };
 const story: Menu = { title: "Our story", path: "/#story" };
-const categoryMenu: Menu[] = categories.map((category) => ({
-  title: category.title,
-  path: category.href,
-}));
+const categoryMenu: Menu[] = categories
+  .filter(({ handle }) => handle !== allJewelry.handle)
+  .map(({ title, href }) => ({ title, path: href }));
 const mobileMenu: Menu[] = [shopAll, ...categoryMenu, story];
 
 export function Navbar() {
