@@ -50,14 +50,16 @@ export function Navbar() {
                 unoptimized
                 className="h-11 w-11 shrink-0 rounded-lg sm:h-14 sm:w-14"
               />
-              <span className="flex flex-col">
-                <span className="font-heading text-[26px] leading-none tracking-[0.055em] text-burgundy sm:text-[34px]">
-                  ROZAYA
-                </span>
-                <span className="mt-1 font-sans text-[10px] font-medium uppercase tracking-[0.32em] text-gold-dark sm:text-[11px]">
-                  BOUTIQUE
-                </span>
-              </span>
+              {/* Vector wordmark; its first R is traced from the RB monogram. */}
+              <Image
+                src="/brand/rozaya-wordmark.svg"
+                alt=""
+                width={132}
+                height={48}
+                priority
+                unoptimized
+                className="h-9 w-auto shrink-0 sm:h-12"
+              />
             </Link>
             <ul className="ml-5 hidden items-center gap-5 lg:flex xl:gap-7">
               {[shopAll, story].map((item) => (
