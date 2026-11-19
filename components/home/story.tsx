@@ -7,11 +7,11 @@ export function Story() {
       <div className="mx-auto grid max-w-7xl md:grid-cols-[0.9fr_1.1fr]">
         <div className="relative min-h-[430px] md:min-h-[640px]">
           <Image
-            src="/images/gold-bracelet.jpg"
-            alt="A gold bracelet and rings worn in soft natural light"
+            src="/images/curators-eye.webp"
+            alt=""
             fill
-            sizes="(min-width: 768px) 42vw, 100vw"
-            className="object-cover object-[center_45%]"
+            unoptimized
+            className="object-cover"
           />
           <div className="absolute bottom-6 left-6 border-l border-gold pl-4 text-cream sm:bottom-10 sm:left-10">
             <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.24em]">
@@ -30,10 +30,9 @@ export function Story() {
             The best pieces feel like they already belong to you.
           </h2>
           <p className="mt-6 max-w-xl font-sans text-sm leading-7 text-charcoal/75 sm:text-base sm:leading-8">
-            Rozaya brings together jewelry across eras and styles: enduring
-            essentials, vintage discoveries and distinctive finds. We look for
-            thoughtful details and lasting character, then let each piece speak
-            for itself.
+            Everything at Rozaya has lived a life before. We examine each piece
+            by hand: hallmarks read, stones identified, condition described
+            honestly. Then we let it speak for itself.
           </p>
           <Link
             href="/search/victorian"

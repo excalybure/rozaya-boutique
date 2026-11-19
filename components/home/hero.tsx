@@ -47,12 +47,12 @@ export function Hero() {
           className="object-cover object-[78%_center]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-burgundy/35 via-transparent to-transparent" />
-        <div className="absolute bottom-6 left-6 border-l border-gold pl-4 text-cream sm:bottom-10 sm:left-10">
+        <div className="absolute inset-x-6 bottom-6 border-l border-gold pl-4 text-cream sm:inset-x-10 sm:bottom-10">
           <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.24em]">
             The Rozaya edit
           </p>
           <p className="mt-1 font-heading text-xl italic sm:text-2xl">
-            Keep what moves you.
+            Antique · Vintage · Modern · Inspected by hand
           </p>
         </div>
       </div>

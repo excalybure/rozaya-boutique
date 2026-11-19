@@ -47,10 +47,8 @@ export function CategoryTiles() {
                       src={category.image}
                       alt=""
                       fill
-                      // Serve the precompressed WebP tiles without requesting Vercel variants.
-                      unoptimized={category.image.endsWith(".webp")}
-                      sizes="(min-width: 1440px) 260px, (min-width: 1024px) 19vw, (min-width: 768px) 23vw, 47vw"
-                      className={`object-cover motion-safe:transition-transform motion-safe:duration-700 motion-safe:group-hover:scale-[1.04] ${category.position}`}
+                      unoptimized
+                      className="object-cover motion-safe:transition-transform motion-safe:duration-700 motion-safe:group-hover:scale-[1.04]"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-burgundy/85 via-burgundy/5 to-transparent" />
                   </div>
