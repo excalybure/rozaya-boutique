@@ -39,12 +39,12 @@ export function Hero() {
 
       <div className="relative min-h-[470px] overflow-hidden sm:min-h-[580px] md:min-h-full">
         <Image
-          src="/images/hero-necklace.jpg"
-          alt="A delicate gold necklace worn with a linen top"
+          src="/images/hero-necklace.avif"
+          alt="Hands opening a vintage jewelry box filled with pearls"
           fill
           priority
           sizes="(min-width: 768px) 48vw, 100vw"
-          className="object-cover object-[center_48%]"
+          className="object-cover object-[78%_center]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-burgundy/35 via-transparent to-transparent" />
         <div className="absolute bottom-6 left-6 border-l border-gold pl-4 text-cream sm:bottom-10 sm:left-10">
