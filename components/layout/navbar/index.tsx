@@ -42,13 +42,13 @@ export function Navbar() {
               className="inline-flex shrink-0 items-center gap-2 sm:gap-3"
             >
               <Image
-                src="/brand/monogram.svg"
+                src="/brand/rb-monogram-header.png"
                 alt=""
-                width={64}
-                height={64}
+                width={56}
+                height={56}
                 priority
                 unoptimized
-                className="h-11 w-11 shrink-0 sm:h-14 sm:w-14"
+                className="h-11 w-11 shrink-0 rounded-lg sm:h-14 sm:w-14"
               />
               <span className="flex flex-col">
                 <span className="font-heading text-[26px] leading-none tracking-[0.055em] text-burgundy sm:text-[34px]">

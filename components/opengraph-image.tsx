@@ -1,37 +1,38 @@
 import { ImageResponse } from "next/og";
-import LogoIcon from "./icons/logo";
 import { join } from "path";
 import { readFile } from "fs/promises";
 
-export type Props = {
-  title?: string;
-};
+export const size = { width: 1200, height: 630 };
+export const contentType = "image/png";
+export const alt = "Rozaya Boutique gold RB monogram on burgundy";
 
-export default async function OpengraphImage(
-  props?: Props,
-): Promise<ImageResponse> {
-  const { title } = {
-    ...{
-      title: process.env.SITE_NAME,
-    },
-    ...props,
-  };
-
-  const file = await readFile(join(process.cwd(), "./fonts/Inter-Bold.ttf"));
+export default async function OpengraphImage({
+  title = process.env.SITE_NAME || "Rozaya Boutique",
+}: { title?: string } = {}): Promise<ImageResponse> {
+  const [file, monogram] = await Promise.all([
+    readFile(join(process.cwd(), "fonts/Inter-Bold.ttf")),
+    readFile(join(process.cwd(), "public/brand/rb-monogram.png")),
+  ]);
   const font = Uint8Array.from(file).buffer;
 
   return new ImageResponse(
     (
-      <div tw="flex h-full w-full flex-col items-center justify-center bg-black">
-        <div tw="flex flex-none items-center justify-center border border-neutral-700 h-[160px] w-[160px] rounded-3xl">
-          <LogoIcon width="64" height="58" fill="white" />
-        </div>
-        <p tw="mt-12 text-6xl font-bold text-white">{title}</p>
+      <div
+        tw="flex h-full w-full flex-col items-center justify-center px-20"
+        style={{ backgroundColor: "#faf6f0", color: "#4a1520" }}
+      >
+        <img
+          src={`data:image/png;base64,${monogram.toString("base64")}`}
+          alt=""
+          width={240}
+          height={240}
+          tw="flex-none rounded-3xl"
+        />
+        <p tw="mt-8 mb-0 text-center text-6xl font-bold">{title}</p>
       </div>
     ),
     {
-      width: 1200,
-      height: 630,
+      ...size,
       fonts: [
         {
           name: "Inter",

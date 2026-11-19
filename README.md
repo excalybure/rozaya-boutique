@@ -55,6 +55,18 @@ separate test catalog. Do not complete checkout with real payment details when
 testing; confirm Shopify's payment test mode before testing an order. Rendering
 the storefront alone does not verify payment, shipping or tax configuration.
 
+### Storefront branding
+
+The shared header uses `public/brand/rb-monogram-header.png`, adjusted for
+optical centering at navigation sizes. Generated link previews use
+`public/brand/rb-monogram.png`.
+The browser tab uses `app/favicon.ico`: gold RB on a burgundy background in
+both light and dark browser themes.
+The Apple home-screen icon (`app/apple-icon.png`) is separate. Product previews
+still use the featured product photo.
+Shopify-hosted checkout and Shopify notification emails have their own branding
+settings in Shopify Admin.
+
 ## Shopify setup
 
 Add these values to `.env.local` and to the deployment environment:
