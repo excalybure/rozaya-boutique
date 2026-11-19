@@ -1,8 +1,16 @@
+import { signedCostumeJewelry } from "./lib/categories";
 import { getCanonicalRedirects } from "./lib/seo";
 
 export default {
   async redirects() {
-    return getCanonicalRedirects();
+    return [
+      ...getCanonicalRedirects(),
+      {
+        source: `/search/${signedCostumeJewelry.legacyHandle}`,
+        destination: signedCostumeJewelry.href,
+        permanent: true,
+      },
+    ];
   },
   experimental: {
     ppr: true,

@@ -14,7 +14,7 @@ export const signedCostumeJewelry = {
   handle: "signed-costume-jewelry",
   href: "/search/signed-costume-jewelry",
   title: "Signed Costume Jewelry",
-  productQuery: "tag:costume-jewelry AND tag:signed",
+  legacyHandle: "under-2000",
 };
 
 export const categories = [

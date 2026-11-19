@@ -3,6 +3,7 @@ import {
   getCatalogPageStart,
   SHOPIFY_CONNECTION_LIMIT,
 } from "lib/catalog-pagination";
+import { signedCostumeJewelry } from "lib/categories";
 import {
   HIDDEN_PRODUCT_TAG,
   SHOPIFY_GRAPHQL_API_ENDPOINT,
@@ -165,7 +166,10 @@ const reshapeCollection = (
 
   return {
     ...collection,
-    path: `/search/${collection.handle}`,
+    path:
+      collection.handle === signedCostumeJewelry.legacyHandle
+        ? signedCostumeJewelry.href
+        : `/search/${collection.handle}`,
   };
 };
 
@@ -322,14 +326,23 @@ export async function getCollection(
     return undefined;
   }
 
-  const res = await shopifyFetch<ShopifyCollectionOperation>({
-    query: getCollectionQuery,
-    variables: {
-      handle,
-    },
-  });
+  async function fetchCollection(handle: string) {
+    const res = await shopifyFetch<ShopifyCollectionOperation>({
+      query: getCollectionQuery,
+      variables: { handle },
+    });
+    return res.body.data.collection;
+  }
 
-  return reshapeCollection(res.body.data.collection);
+  const collection = await fetchCollection(handle);
+  if (!collection && handle === signedCostumeJewelry.handle) {
+    // Renaming the Shopify collection did not change its Shopify handle.
+    return reshapeCollection(
+      await fetchCollection(signedCostumeJewelry.legacyHandle),
+    );
+  }
+
+  return reshapeCollection(collection);
 }
 
 export async function getCollectionProducts({

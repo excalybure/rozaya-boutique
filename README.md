@@ -83,9 +83,11 @@ products in Shopify Admin under Products > Collections; the section refreshes
 after the storefront cache updates. Category navigation expects collections with
 the handles `rings`, `necklaces`, `bracelets`, `earrings`, `art-deco`,
 `victorian`, `diamond`, `under-500`, `gold-jewelry`, and `all-jewelry`. Publish
-these collections to the Headless sales channel. **Signed Costume Jewelry** uses
-the `signed-costume-jewelry` collection if published to Headless. Otherwise it
-shows Headless products tagged with both `costume-jewelry` and `signed`.
+these collections to the Headless sales channel. **Signed Costume Jewelry**
+loads products from its published Shopify collection at
+`/search/signed-costume-jewelry`. The storefront also supports the collection's
+original Shopify handle, `under-2000`. In Shopify, set the collection to match
+both product tags, `costume-jewelry` and `signed` (all conditions).
 
 `/search/jewelry-sets` uses the `jewelry-sets` collection if it is published to
 the Headless sales channel. Otherwise it filters `all-jewelry` to

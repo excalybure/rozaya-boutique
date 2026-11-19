@@ -2,7 +2,7 @@ import Filters from "components/layout/search/filters";
 import Grid from "components/grid";
 import ProductGridItems from "components/layout/product-grid-items";
 import CatalogPagination from "components/layout/search/pagination";
-import { allJewelry, jewelrySets, signedCostumeJewelry } from "lib/categories";
+import { allJewelry, jewelrySets } from "lib/categories";
 import {
   getCatalogPage,
   getCatalogPageUrl,
@@ -13,7 +13,6 @@ import { getCatalogCanonicalUrl } from "lib/seo";
 import {
   getCollection,
   getCollectionProductsWithFilters,
-  getProductPage,
   isShopifyConfigured,
 } from "lib/shopify";
 import { Metadata } from "next";
@@ -92,7 +91,6 @@ export async function generateMetadata(
   if (
     !collection &&
     params.collection !== jewelrySets.handle &&
-    params.collection !== signedCostumeJewelry.handle &&
     isShopifyConfigured
   )
     return notFound();
@@ -125,16 +123,8 @@ export default async function CategoryPage(props: CategoryPageProps) {
   const collection = await getCollection(params.collection);
   const useSetsTaxonomy =
     !collection && params.collection === jewelrySets.handle;
-  const useSignedCostumeTags =
-    !collection && params.collection === signedCostumeJewelry.handle;
 
-  if (
-    !collection &&
-    !useSetsTaxonomy &&
-    !useSignedCostumeTags &&
-    isShopifyConfigured
-  )
-    notFound();
+  if (!collection && !useSetsTaxonomy && isShopifyConfigured) notFound();
 
   const pathname = `/search/${encodeURIComponent(params.collection)}`;
   const page = getCatalogPage(searchParams.page);
@@ -144,21 +134,15 @@ export default async function CategoryPage(props: CategoryPageProps) {
     // Shopify's Storefront category filter takes the short taxonomy ID, not a GID.
     productFilters.push({ category: { id: jewelrySets.taxonomyId } });
   }
-  // Collection filters OR multiple product tags; search for items with both tags.
-  const result = useSignedCostumeTags
-    ? await getProductPage({
-        query: signedCostumeJewelry.productQuery,
-        page,
-        sortKey,
-        reverse,
-      }).then((result) => result && { ...result, filters: [] })
-    : await getCollectionProductsWithFilters({
-        collection: useSetsTaxonomy ? allJewelry.handle : params.collection,
-        filters: productFilters,
-        page,
-        sortKey,
-        reverse,
-      });
+  const result = await getCollectionProductsWithFilters({
+    collection: useSetsTaxonomy
+      ? allJewelry.handle
+      : (collection?.handle ?? params.collection),
+    filters: productFilters,
+    page,
+    sortKey,
+    reverse,
+  });
   if (!result) redirect(getCatalogPageUrl(pathname, searchParams, 1));
   const { products, filters, hasNextPage } = result;
   const title = collection?.title || titleFromHandle(params.collection);
