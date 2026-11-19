@@ -82,9 +82,13 @@ with images that are visible to the Headless sales channel. Add or remove
 products in Shopify Admin under Products > Collections; the section refreshes
 after the storefront cache updates. Category navigation expects collections with
 the handles `rings`, `necklaces`, `bracelets`, `earrings`, `art-deco`,
-`victorian`, `diamond`, `under-500`, `gold-jewelry`, `under-2000` and
-`all-jewelry`. `/search/jewelry-sets` uses the `jewelry-sets` collection if it is
-published to the Headless sales channel. Otherwise it filters `all-jewelry` to
+`victorian`, `diamond`, `under-500`, `gold-jewelry`, and `all-jewelry`. Publish
+these collections to the Headless sales channel. **Signed Costume Jewelry** uses
+the `signed-costume-jewelry` collection if published to Headless. Otherwise it
+shows Headless products tagged with both `costume-jewelry` and `signed`.
+
+`/search/jewelry-sets` uses the `jewelry-sets` collection if it is published to
+the Headless sales channel. Otherwise it filters `all-jewelry` to
 the Shopify **Jewelry Sets** product category, so no separate collection is
 required. Set the product category (not the product type) and make sure the
 product is visible to Headless and included in `all-jewelry` for it to appear

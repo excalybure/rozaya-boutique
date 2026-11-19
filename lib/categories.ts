@@ -10,6 +10,13 @@ export const jewelrySets = {
   taxonomyId: "aa-6-7",
 };
 
+export const signedCostumeJewelry = {
+  handle: "signed-costume-jewelry",
+  href: "/search/signed-costume-jewelry",
+  title: "Signed Costume Jewelry",
+  productQuery: "tag:costume-jewelry AND tag:signed",
+};
+
 export const categories = [
   {
     title: "Rings",
@@ -82,10 +89,10 @@ export const categories = [
     image: "/images/categories/gold-jewelry.webp",
   },
   {
-    title: "Under $2000",
-    description: "Distinctive finds to keep",
-    handle: "under-2000",
-    href: "/search/under-2000",
+    handle: signedCostumeJewelry.handle,
+    href: signedCostumeJewelry.href,
+    title: signedCostumeJewelry.title,
+    description: "Maker-marked treasures from every era",
     image: "/images/categories/under-2000.webp",
   },
   {
