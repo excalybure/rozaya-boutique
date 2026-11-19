@@ -43,7 +43,7 @@ export function Hero() {
           alt="Hands opening a vintage jewelry box filled with pearls"
           fill
           priority
-          sizes="(min-width: 768px) 48vw, 100vw"
+          unoptimized
           className="object-cover object-[78%_center]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-burgundy/35 via-transparent to-transparent" />
