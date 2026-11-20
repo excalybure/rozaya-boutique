@@ -17,6 +17,15 @@ export const signedCostumeJewelry = {
   legacyHandle: "under-2000",
 };
 
+const under100 = {
+  handle: "under-100",
+  href: "/search/under-100",
+  title: "Under $100",
+  legacyHandle: "under-500",
+};
+
+export const renamedCollections = [signedCostumeJewelry, under100];
+
 export const categories = [
   {
     title: "Rings",
@@ -68,10 +77,10 @@ export const categories = [
     image: "/images/categories/diamond.webp",
   },
   {
-    title: "Under $500",
+    title: under100.title,
     description: "Small treasures to keep",
-    handle: "under-500",
-    href: "/search/under-500",
+    handle: under100.handle,
+    href: under100.href,
     image: "/images/categories/under-500.webp",
   },
   {

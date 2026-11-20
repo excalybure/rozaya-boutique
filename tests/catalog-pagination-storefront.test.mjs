@@ -98,3 +98,36 @@ test(
     );
   },
 );
+
+test(
+  "Under $100 keeps bookmarked sort options and loads the renamed Shopify collection",
+  { skip: !baseUrl },
+  async () => {
+    const query = "?sort=price-asc";
+    const previous = await fetch(
+      new URL(`/search/under-500${query}`, baseUrl),
+      {
+        redirect: "manual",
+        signal: AbortSignal.timeout(60_000),
+      },
+    );
+    assert.equal(previous.status, 308);
+    const destination = new URL(previous.headers.get("location"), baseUrl);
+    assert.equal(destination.pathname, "/search/under-100");
+    assert.equal(destination.search, query);
+
+    const html = await read(destination);
+    assert.match(html, /<h1\b[^>]*>Under \$100<\/h1>/);
+    assert.match(html, /href="\/product\//);
+    assert.match(html, /rel="canonical" href="[^"]+\/search\/under-100"/);
+
+    const homepage = await read("/");
+    assert.match(homepage, /<h3\b[^>]*>Under \$100<\/h3>/);
+    assert.match(homepage, /href="\/search\/under-100"/);
+    assert.doesNotMatch(homepage, /href="\/search\/under-500"|Under \$500/);
+
+    const sitemap = await read("/sitemap.xml");
+    assert.match(sitemap, /\/search\/under-100<\/loc>/);
+    assert.doesNotMatch(sitemap, /\/search\/under-500<\/loc>/);
+  },
+);

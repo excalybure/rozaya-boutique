@@ -2,7 +2,7 @@ import Filters from "components/layout/search/filters";
 import Grid from "components/grid";
 import ProductGridItems from "components/layout/product-grid-items";
 import CatalogPagination from "components/layout/search/pagination";
-import { allJewelry, jewelrySets } from "lib/categories";
+import { allJewelry, jewelrySets, renamedCollections } from "lib/categories";
 import {
   getCatalogPage,
   getCatalogPageUrl,
@@ -74,6 +74,9 @@ function getProductFilters(searchParams: CatalogSearchParams) {
 }
 
 function titleFromHandle(handle: string) {
+  const renamed = renamedCollections.find((entry) => entry.handle === handle);
+  if (renamed) return renamed.title;
+
   return handle
     .split("-")
     .filter(Boolean)

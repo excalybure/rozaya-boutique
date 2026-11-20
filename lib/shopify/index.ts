@@ -3,7 +3,7 @@ import {
   getCatalogPageStart,
   SHOPIFY_CONNECTION_LIMIT,
 } from "lib/catalog-pagination";
-import { signedCostumeJewelry } from "lib/categories";
+import { renamedCollections } from "lib/categories";
 import {
   HIDDEN_PRODUCT_TAG,
   SHOPIFY_GRAPHQL_API_ENDPOINT,
@@ -164,12 +164,12 @@ const reshapeCollection = (
     return undefined;
   }
 
+  const renamed = renamedCollections.find(
+    ({ legacyHandle }) => legacyHandle === collection.handle,
+  );
   return {
     ...collection,
-    path:
-      collection.handle === signedCostumeJewelry.legacyHandle
-        ? signedCostumeJewelry.href
-        : `/search/${collection.handle}`,
+    path: renamed?.href ?? `/search/${collection.handle}`,
   };
 };
 
@@ -334,12 +334,11 @@ export async function getCollection(
     return res.body.data.collection;
   }
 
-  const collection = await fetchCollection(handle);
-  if (!collection && handle === signedCostumeJewelry.handle) {
-    // Renaming the Shopify collection did not change its Shopify handle.
-    return reshapeCollection(
-      await fetchCollection(signedCostumeJewelry.legacyHandle),
-    );
+  let collection = await fetchCollection(handle);
+  if (!collection) {
+    // Shopify can keep the old handle when the merchant changes the title.
+    const renamed = renamedCollections.find((entry) => entry.handle === handle);
+    if (renamed) collection = await fetchCollection(renamed.legacyHandle);
   }
 
   return reshapeCollection(collection);

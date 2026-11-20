@@ -82,9 +82,14 @@ with images that are visible to the Headless sales channel. Add or remove
 products in Shopify Admin under Products > Collections; the section refreshes
 after the storefront cache updates. Category navigation expects collections with
 the handles `rings`, `necklaces`, `bracelets`, `earrings`, `art-deco`,
-`victorian`, `diamond`, `under-500`, `gold-jewelry`, and `all-jewelry`. Publish
-these collections to the Headless sales channel. **Signed Costume Jewelry**
-loads products from its published Shopify collection at
+`victorian`, `diamond`, `gold-jewelry`, and `all-jewelry`. Publish these
+collections to the Headless sales channel.
+
+**Under $100** is at `/search/under-100`. Shopify kept its original handle,
+`under-500`, when the title changed. Both Shopify handles are supported, and
+the old storefront URL redirects permanently to the new one.
+
+**Signed Costume Jewelry** loads products from its published Shopify collection at
 `/search/signed-costume-jewelry`. The storefront also supports the collection's
 original Shopify handle, `under-2000`. In Shopify, set the collection to match
 both product tags, `costume-jewelry` and `signed` (all conditions).
@@ -272,5 +277,5 @@ under the Unsplash License:
 - Gold necklace: [Process AG](https://unsplash.com/photos/gold-colored-necklace-OEuo7nx97fM)
 - Ring: [MR O.K](https://unsplash.com/photos/person-showing-gold-colored-ring--ePHy6jg_7c)
 
-The Diamond and Under $500 category images were generated for this project with
+The Diamond and Under $100 category images were generated for this project with
 OpenAI ImageGen.
