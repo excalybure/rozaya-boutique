@@ -314,7 +314,57 @@ test(
   },
 );
 
-for (const collection of ["rings", "gold-jewelry"]) {
+test(
+  "replacement collection tiles load their photos and open the matching storefront pages",
+  { skip: !modulePath },
+  async (t) => {
+    const page = await openPage(t, "/", { width: 1280, height: 900 });
+    for (const [handle, title] of [
+      ["semi-precious-gemstones", "Semi-Precious Gemstones"],
+      ["vintage-bakelite", "Vintage Bakelite"],
+    ]) {
+      const path = `/search/${handle}`;
+      const tile = page.locator("#collections a").filter({
+        has: page.getByRole("heading", { name: title, exact: true }),
+      });
+      assert.equal(await tile.getAttribute("href"), path);
+      const image = tile.locator("img");
+      await image.scrollIntoViewIfNeeded();
+      assert.equal(
+        await image.getAttribute("src"),
+        `/images/categories/${handle}.webp`,
+      );
+      assert.ok(
+        await image.evaluate(async (img) => {
+          await img.decode();
+          return img.naturalWidth > 0;
+        }),
+      );
+      const menu = page.getByRole("navigation", { name: "Collections" });
+      assert.equal(
+        await menu
+          .getByRole("link", { name: title, exact: true })
+          .getAttribute("href"),
+        path,
+      );
+      assert.equal(
+        await page
+          .locator('a[href="/search/diamond"], a[href="/search/gold-jewelry"]')
+          .count(),
+        0,
+      );
+
+      await tile.click();
+      await page.waitForURL((url) => url.pathname === path);
+      await page
+        .getByRole("heading", { level: 1, name: title, exact: true })
+        .waitFor();
+      await page.goBack();
+    }
+  },
+);
+
+for (const collection of ["rings", "bracelets"]) {
   test(
     `${collection} product cards load responsive Shopify images on mobile`,
     { skip: !modulePath },

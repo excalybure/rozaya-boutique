@@ -3,6 +3,7 @@ import seoFragment from "../fragments/seo";
 
 const collectionFragment = /* GraphQL */ `
   fragment collection on Collection {
+    id
     handle
     title
     description
@@ -15,8 +16,8 @@ const collectionFragment = /* GraphQL */ `
 `;
 
 export const getCollectionQuery = /* GraphQL */ `
-  query getCollection($handle: String!) {
-    collection(handle: $handle) {
+  query getCollection($handle: String, $id: ID) {
+    collection(handle: $handle, id: $id) {
       ...collection
     }
   }

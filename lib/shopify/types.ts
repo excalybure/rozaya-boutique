@@ -38,7 +38,7 @@ export type CartItem = {
   };
 };
 
-export type Collection = ShopifyCollection & {
+export type Collection = Omit<ShopifyCollection, "id"> & {
   path: string;
 };
 
@@ -147,6 +147,7 @@ export type ShopifyCart = {
 };
 
 export type ShopifyCollection = {
+  id: string;
   handle: string;
   title: string;
   description: string;
@@ -233,11 +234,9 @@ export type ShopifyUpdateCartOperation = {
 
 export type ShopifyCollectionOperation = {
   data: {
-    collection: ShopifyCollection;
+    collection: ShopifyCollection | null;
   };
-  variables: {
-    handle: string;
-  };
+  variables: { handle: string } | { id: string };
 };
 
 export type ShopifyCollectionProductsOperation = {

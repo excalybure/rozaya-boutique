@@ -2,7 +2,12 @@ import Filters from "components/layout/search/filters";
 import Grid from "components/grid";
 import ProductGridItems from "components/layout/product-grid-items";
 import CatalogPagination from "components/layout/search/pagination";
-import { allJewelry, jewelrySets, renamedCollections } from "lib/categories";
+import {
+  allJewelry,
+  idLinkedCollections,
+  jewelrySets,
+  renamedCollections,
+} from "lib/categories";
 import {
   getCatalogPage,
   getCatalogPageUrl,
@@ -84,21 +89,34 @@ function titleFromHandle(handle: string) {
     .join(" ");
 }
 
+async function getCategory(handle: string) {
+  const collection = await getCollection(handle);
+  const linked = idLinkedCollections.find((entry) => entry.handle === handle);
+  if (
+    !collection &&
+    !linked &&
+    handle !== jewelrySets.handle &&
+    isShopifyConfigured
+  ) {
+    notFound();
+  }
+
+  return {
+    collection,
+    title: collection?.title || linked?.title || titleFromHandle(handle),
+    pathname: collection?.path ?? `/search/${encodeURIComponent(handle)}`,
+    unavailable: Boolean(linked && !collection),
+  };
+}
+
 export async function generateMetadata(
   props: CategoryPageProps,
 ): Promise<Metadata> {
   const params = await props.params;
   const searchParams = (await props.searchParams) ?? {};
-  const collection = await getCollection(params.collection);
-
-  if (
-    !collection &&
-    params.collection !== jewelrySets.handle &&
-    isShopifyConfigured
-  )
-    return notFound();
-
-  const title = collection?.title || titleFromHandle(params.collection);
+  const { collection, title, pathname, unavailable } = await getCategory(
+    params.collection,
+  );
   const canonicalPage =
     getCatalogSort(searchParams.sort).slug ||
     getProductFilters(searchParams).length
@@ -107,11 +125,9 @@ export async function generateMetadata(
 
   return {
     title: collection?.seo?.title || title,
+    ...(unavailable && { robots: { index: false } }),
     alternates: {
-      canonical: getCatalogCanonicalUrl(
-        `/search/${encodeURIComponent(params.collection)}`,
-        canonicalPage,
-      ),
+      canonical: getCatalogCanonicalUrl(pathname, canonicalPage),
     },
     description:
       collection?.seo?.description ||
@@ -123,14 +139,33 @@ export async function generateMetadata(
 export default async function CategoryPage(props: CategoryPageProps) {
   const searchParams = (await props.searchParams) ?? {};
   const params = await props.params;
-  const collection = await getCollection(params.collection);
+  const { collection, title, pathname, unavailable } = await getCategory(
+    params.collection,
+  );
+  const page = getCatalogPage(searchParams.page);
+
+  if (unavailable) {
+    if (page > 1) redirect(getCatalogPageUrl(pathname, searchParams, 1));
+    return (
+      <section className="py-4 lg:py-0">
+        <h1 className="font-heading text-4xl tracking-[-0.03em] text-burgundy sm:text-5xl">
+          {title}
+        </h1>
+        <p className="mt-4 font-sans text-sm leading-7 text-charcoal/70">
+          This collection is not available to shop yet.
+        </p>
+        <Link
+          href="/search"
+          className="mt-6 inline-block font-sans text-sm text-burgundy underline underline-offset-4"
+        >
+          Browse all jewelry
+        </Link>
+      </section>
+    );
+  }
+
   const useSetsTaxonomy =
     !collection && params.collection === jewelrySets.handle;
-
-  if (!collection && !useSetsTaxonomy && isShopifyConfigured) notFound();
-
-  const pathname = `/search/${encodeURIComponent(params.collection)}`;
-  const page = getCatalogPage(searchParams.page);
   const { sortKey, reverse } = getCatalogSort(searchParams.sort);
   const productFilters = getProductFilters(searchParams);
   if (useSetsTaxonomy) {
@@ -148,7 +183,6 @@ export default async function CategoryPage(props: CategoryPageProps) {
   });
   if (!result) redirect(getCatalogPageUrl(pathname, searchParams, 1));
   const { products, filters, hasNextPage } = result;
-  const title = collection?.title || titleFromHandle(params.collection);
 
   return (
     <section className="py-4 lg:py-0">

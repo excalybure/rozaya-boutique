@@ -3,7 +3,11 @@ import {
   getCatalogPageStart,
   SHOPIFY_CONNECTION_LIMIT,
 } from "lib/catalog-pagination";
-import { renamedCollections } from "lib/categories";
+import {
+  idLinkedCollections,
+  renamedCollections,
+  retiredCollectionHandles,
+} from "lib/categories";
 import {
   HIDDEN_PRODUCT_TAG,
   SHOPIFY_GRAPHQL_API_ENDPOINT,
@@ -158,18 +162,22 @@ const reshapeCart = (cart: ShopifyCart): Cart => {
 };
 
 const reshapeCollection = (
-  collection: ShopifyCollection,
+  collection: ShopifyCollection | null,
 ): Collection | undefined => {
-  if (!collection) {
+  if (!collection) return undefined;
+
+  const { id, ...details } = collection;
+  const linked = idLinkedCollections.find(({ shopifyId }) => shopifyId === id);
+  if (!linked && retiredCollectionHandles.includes(collection.handle)) {
     return undefined;
   }
-
   const renamed = renamedCollections.find(
     ({ legacyHandle }) => legacyHandle === collection.handle,
   );
   return {
-    ...collection,
-    path: renamed?.href ?? `/search/${collection.handle}`,
+    ...details,
+    title: linked?.title ?? collection.title,
+    path: linked?.href ?? renamed?.href ?? `/search/${collection.handle}`,
   };
 };
 
@@ -326,19 +334,30 @@ export async function getCollection(
     return undefined;
   }
 
-  async function fetchCollection(handle: string) {
+  async function fetchCollection(
+    variables: ShopifyCollectionOperation["variables"],
+  ) {
     const res = await shopifyFetch<ShopifyCollectionOperation>({
       query: getCollectionQuery,
-      variables: { handle },
+      variables,
     });
     return res.body.data.collection;
   }
 
-  let collection = await fetchCollection(handle);
+  const linked = idLinkedCollections.find((entry) => entry.handle === handle);
+  let collection = await fetchCollection(
+    linked ? { id: linked.shopifyId } : { handle },
+  );
+  if (linked && !collection) {
+    // Pick up a newly published collection without caching its notice for days.
+    cacheLife("minutes");
+    return undefined;
+  }
   if (!collection) {
     // Shopify can keep the old handle when the merchant changes the title.
     const renamed = renamedCollections.find((entry) => entry.handle === handle);
-    if (renamed) collection = await fetchCollection(renamed.legacyHandle);
+    if (renamed)
+      collection = await fetchCollection({ handle: renamed.legacyHandle });
   }
 
   return reshapeCollection(collection);

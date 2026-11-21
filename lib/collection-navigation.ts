@@ -1,4 +1,9 @@
-import { allJewelry, categories, jewelrySets } from "lib/categories";
+import {
+  allJewelry,
+  categories,
+  idLinkedCollections,
+  jewelrySets,
+} from "lib/categories";
 import { getCollections, isShopifyConfigured } from "lib/shopify";
 
 export async function getCollectionNavigation() {
@@ -8,17 +13,14 @@ export async function getCollectionNavigation() {
         .filter(({ handle }) => handle)
         .map(({ title, path }) => ({ title, path }))
     : categories.map(({ title, href }) => ({
-        title:
-          href === allJewelry.href
-            ? "All jewelry"
-            : href === "/search/diamond"
-              ? "Diamond Jewelry"
-              : title,
+        title: href === allJewelry.href ? "All jewelry" : title,
         path: href,
       }));
 
-  if (!links.some(({ path }) => path === jewelrySets.href)) {
-    links.push({ title: jewelrySets.title, path: jewelrySets.href });
+  for (const { href, title } of [jewelrySets, ...idLinkedCollections]) {
+    if (!links.some(({ path }) => path === href)) {
+      links.push({ title, path: href });
+    }
   }
 
   return [all, ...links.sort((a, b) => a.title.localeCompare(b.title, "en"))];

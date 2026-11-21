@@ -82,8 +82,16 @@ with images that are visible to the Headless sales channel. Add or remove
 products in Shopify Admin under Products > Collections; the section refreshes
 after the storefront cache updates. Category navigation expects collections with
 the handles `rings`, `necklaces`, `bracelets`, `earrings`, `art-deco`,
-`victorian`, `diamond`, `gold-jewelry`, and `all-jewelry`. Publish these
-collections to the Headless sales channel.
+`victorian`, and `all-jewelry`. Publish these collections to the Headless sales
+channel.
+
+**Semi-Precious Gemstones** (`/search/semi-precious-gemstones`) and **Vintage
+Bakelite** (`/search/vintage-bakelite`) use Shopify collection IDs `514904391755`
+and `514908553291`, respectively, so their Shopify handles can change. Publish
+both collections and their products to the storefront's **Headless** sales
+channel. Until a collection is visible, its page shows an availability notice,
+not products from another collection. The retired `/search/diamond` and
+`/search/gold-jewelry` URLs redirect to Shop all.
 
 **Under $100** is at `/search/under-100`. Shopify kept its original handle,
 `under-500`, when the title changed. Both Shopify handles are supported, and
@@ -277,5 +285,6 @@ under the Unsplash License:
 - Gold necklace: [Process AG](https://unsplash.com/photos/gold-colored-necklace-OEuo7nx97fM)
 - Ring: [MR O.K](https://unsplash.com/photos/person-showing-gold-colored-ring--ePHy6jg_7c)
 
-The Diamond and Under $100 category images were generated for this project with
-OpenAI ImageGen.
+The Semi-Precious Gemstones and Vintage Bakelite tiles use photos supplied by
+Rozaya Boutique. The original Diamond and Under $100 category images were
+generated for this project with OpenAI ImageGen.

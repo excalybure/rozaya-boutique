@@ -1,4 +1,4 @@
-import { renamedCollections } from "./lib/categories";
+import { renamedCollections, retiredCollectionHandles } from "./lib/categories";
 import { getCanonicalRedirects } from "./lib/seo";
 
 export default {
@@ -8,6 +8,11 @@ export default {
       ...renamedCollections.map(({ legacyHandle, href }) => ({
         source: `/search/${legacyHandle}`,
         destination: href,
+        permanent: true,
+      })),
+      ...retiredCollectionHandles.map((handle) => ({
+        source: `/search/${handle}`,
+        destination: "/search",
         permanent: true,
       })),
     ];

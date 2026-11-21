@@ -26,6 +26,23 @@ const under100 = {
 
 export const renamedCollections = [signedCostumeJewelry, under100];
 
+const semiPreciousGemstones = {
+  handle: "semi-precious-gemstones",
+  href: "/search/semi-precious-gemstones",
+  title: "Semi-Precious Gemstones",
+  shopifyId: "gid://shopify/Collection/514904391755",
+};
+
+const vintageBakelite = {
+  handle: "vintage-bakelite",
+  href: "/search/vintage-bakelite",
+  title: "Vintage Bakelite",
+  shopifyId: "gid://shopify/Collection/514908553291",
+};
+
+export const idLinkedCollections = [semiPreciousGemstones, vintageBakelite];
+export const retiredCollectionHandles = ["diamond", "gold-jewelry"];
+
 export const categories = [
   {
     title: "Rings",
@@ -70,11 +87,9 @@ export const categories = [
     image: "/images/categories/victorian.webp",
   },
   {
-    title: "Diamond",
-    description: "Brilliance in every detail",
-    handle: "diamond",
-    href: "/search/diamond",
-    image: "/images/categories/diamond.webp",
+    ...semiPreciousGemstones,
+    description: "A study in color",
+    image: "/images/categories/semi-precious-gemstones.webp",
   },
   {
     title: under100.title,
@@ -91,11 +106,9 @@ export const categories = [
     image: "/images/categories/jewelry-sets.webp",
   },
   {
-    title: "Gold Jewelry",
-    description: "A warmer kind of glow",
-    handle: "gold-jewelry",
-    href: "/search/gold-jewelry",
-    image: "/images/categories/gold-jewelry.webp",
+    ...vintageBakelite,
+    description: "Bold shapes from another era",
+    image: "/images/categories/vintage-bakelite.webp",
   },
   {
     handle: signedCostumeJewelry.handle,
