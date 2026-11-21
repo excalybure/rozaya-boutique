@@ -59,8 +59,9 @@ export default async function RootLayout({
   // Don't await the fetch, pass the Promise to the context provider
   const cart = getCart();
   const htmlClass = `${playfair.variable} ${cormorant.variable} ${inter.variable} bg-cream text-charcoal`;
+  // Extensions such as LanguageTool can add attributes to <html> before hydration.
   return (
-    <html lang="en" className={htmlClass}>
+    <html lang="en" className={htmlClass} suppressHydrationWarning>
       <body className="bg-cream text-charcoal selection:bg-gold/30">
         <PrivacyProvider config={getPrivacyConfig()}>
           <CartProvider cartPromise={cart}>
