@@ -3,6 +3,7 @@ export const policyPages = {
   "refund-policy": { field: "refundPolicy", title: "Returns and Refunds" },
   "shipping-policy": { field: "shippingPolicy", title: "Shipping Policy" },
   "terms-of-service": { field: "termsOfService", title: "Terms of Service" },
+  "legal-notice": { field: "legalNotice", title: "Legal Notice" },
   "contact-information": { field: "contactInformation", title: "Contact" },
 } as const;
 

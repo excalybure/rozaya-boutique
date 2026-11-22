@@ -19,7 +19,7 @@ export const getPolicies = cache(async () => {
   }
 
   const result = await shopifyFetch<PolicyOperation>({
-    // contactInformation is absent from the catalog's legacy API schema.
+    // Legal notice and contact information require the newer policy schema.
     apiVersion: "2026-10",
     query: `query getPolicies {
       shop {
@@ -27,6 +27,7 @@ export const getPolicies = cache(async () => {
         refundPolicy { title body url }
         shippingPolicy { title body url }
         termsOfService { title body url }
+        legalNotice { title body url }
         contactInformation { title body url }
       }
     }`,

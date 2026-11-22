@@ -84,6 +84,7 @@ test("policy routing rejects inherited and unknown names", () => {
     "refund-policy",
     "shipping-policy",
     "terms-of-service",
+    "legal-notice",
     "contact-information",
   ]) {
     assert.equal(isPolicyHandle(handle), true);

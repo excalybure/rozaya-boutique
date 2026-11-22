@@ -194,9 +194,11 @@ Markdown, Shopify-ready HTML, and browser previews locally; it never publishes.
 
 The footer links to Shopify's saved policies at `/policies/privacy-policy`,
 `/policies/refund-policy`, `/policies/shipping-policy`,
-`/policies/terms-of-service`, and `/policies/contact-information`. These use
-Shopify policy objects, not Online Store Pages. Empty policies and detected
-unfinished drafts show an unavailable notice instead of invented legal text.
+`/policies/terms-of-service`, `/policies/legal-notice`, and
+`/policies/contact-information`. These use Shopify policy objects, not Online
+Store Pages. Edit the Legal Notice in Shopify Admin under **Settings > Policies**
+to update the disclaimer. Empty policies and detected unfinished drafts show
+an unavailable notice instead of invented legal text.
 This does not remove incomplete policies from Shopify checkout: correct them
 in Admin only after an approved publication decision.
 

@@ -175,6 +175,7 @@ test(
       "refund-policy",
       "shipping-policy",
       "terms-of-service",
+      "legal-notice",
       "contact-information",
     ]) {
       await checkPage(
