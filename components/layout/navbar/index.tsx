@@ -9,7 +9,7 @@ import MobileMenu from "./mobile-menu";
 import Search, { SearchSkeleton } from "./search";
 
 const shopAll: Menu = { title: "Shop all", path: "/search" };
-const story: Menu = { title: "Our story", path: "/#story" };
+const story: Menu = { title: "Our story", path: "/about" };
 const categoryMenu: Menu[] = categories
   .filter(({ handle }) => handle !== allJewelry.handle)
   .map(({ title, href }) => ({ title, path: href }));

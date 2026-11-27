@@ -18,8 +18,9 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (isShopifyConfigured) validateEnvironmentVariables();
 
-  const routesMap = [""].map((route) => ({
-    url: getCanonicalUrl(`/${route}`),
+  const localPaths = ["/", "/about"];
+  const routesMap = localPaths.map((path) => ({
+    url: getCanonicalUrl(path),
     lastModified: new Date().toISOString(),
   }));
 
@@ -38,10 +39,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   const pagesPromise = getPages().then((pages) =>
-    pages.map((page) => ({
-      url: getCanonicalUrl(`/${encodeURIComponent(page.handle)}`),
-      lastModified: page.updatedAt,
-    })),
+    pages
+      .map((page) => ({
+        path: `/${encodeURIComponent(page.handle)}`,
+        lastModified: page.updatedAt,
+      }))
+      .filter(({ path }) => !localPaths.includes(path))
+      .map(({ path, lastModified }) => ({
+        url: getCanonicalUrl(path),
+        lastModified,
+      })),
   );
 
   let fetchedRoutes: Route[] = [];

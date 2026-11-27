@@ -36,6 +36,11 @@ This uses the existing dependencies; it does not require `npm install` or a new
 lockfile. If port 3000 is occupied, Next.js may choose another port; use the
 **Local** URL printed in the terminal.
 
+Open `/about` to review the About page, or select **Our story** in the main
+navigation. Its **Returns and Refunds policy** link opens
+`/policies/refund-policy`, which displays the policy saved in Shopify when
+store credentials are configured and the policy is available.
+
 ### Check the current storefront
 
 With the server running and Shopify configured:

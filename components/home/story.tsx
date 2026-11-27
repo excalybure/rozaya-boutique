@@ -35,10 +35,10 @@ export function Story() {
             honestly. Then we let it speak for itself.
           </p>
           <Link
-            href="/search/victorian"
+            href="/about"
             className="mt-8 inline-flex w-fit items-center gap-3 border-b border-gold pb-2 font-sans text-xs font-semibold uppercase tracking-[0.16em] text-burgundy transition-colors hover:text-gold-dark"
           >
-            Discover vintage finds <span aria-hidden="true">→</span>
+            Read our story <span aria-hidden="true">→</span>
           </Link>
 
           <div className="mt-12 grid grid-cols-1 gap-6 border-t border-burgundy/15 pt-7 sm:grid-cols-3 sm:gap-5">

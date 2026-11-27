@@ -55,10 +55,10 @@ export default function Footer() {
           <ul className="mt-5 space-y-3">
             <li>
               <Link
-                href="/#story"
+                href="/about"
                 className="font-sans text-sm text-cream/75 transition-colors hover:text-gold-light"
               >
-                Our point of view
+                About Rozaya Boutique
               </Link>
             </li>
             <li>
