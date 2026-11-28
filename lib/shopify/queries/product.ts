@@ -9,6 +9,17 @@ export const getProductQuery = /* GraphQL */ `
   ${productFragment}
 `;
 
+export const getVariantAvailabilityQuery = /* GraphQL */ `
+  query getVariantAvailability($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on ProductVariant {
+        id
+        availableForSale
+      }
+    }
+  }
+`;
+
 export const getProductsQuery = /* GraphQL */ `
   query getProducts(
     $sortKey: ProductSortKeys

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { SoldBadge } from "components/product/sold-badge";
 import { ShopifyImage } from "components/shopify-image";
 import type { Product } from "lib/shopify/types";
 import Price from "../price";
@@ -128,14 +129,16 @@ export function GridTileImage({
   active,
   label,
   product,
+  isSold = product?.availableForSale === false,
   ...props
 }: {
   isInteractive?: boolean;
   active?: boolean;
   label?: LabelProps;
   product?: ProductCardProduct;
+  isSold?: boolean;
 } & React.ComponentProps<typeof ShopifyImage>) {
-  const compareAtPrice = getCompareAtPrice(product, label);
+  const compareAtPrice = isSold ? null : getCompareAtPrice(product, label);
   const priceAmount = Number.parseFloat(label?.amount ?? "");
   const compareAtAmount = Number.parseFloat(compareAtPrice ?? "");
   const discountPercentage =
@@ -169,7 +172,11 @@ export function GridTileImage({
         {...props}
       />
 
-      {discountPercentage ? (
+      {isSold ? (
+        <div className="absolute top-3 left-3">
+          <SoldBadge />
+        </div>
+      ) : discountPercentage ? (
         <div className="absolute left-3 top-3 rounded bg-burgundy px-2 py-1 text-xs uppercase tracking-wide text-cream shadow-sm">
           {discountPercentage}% Off
         </div>
@@ -196,6 +203,7 @@ export function GridTileImage({
         {image}
 
         <div className="space-y-1 p-4">
+          {isSold && !image ? <SoldBadge /> : null}
           <h3 className="line-clamp-2 font-serif text-sm leading-snug text-charcoal md:text-base">
             {label.title}
           </h3>
@@ -237,7 +245,7 @@ export function GridTileImage({
       className={clsx(
         "group flex h-full w-full items-center justify-center overflow-hidden border bg-cream hover:border-burgundy",
         {
-          "relative": label,
+          "relative": label || isSold,
           "border-2 border-gold": active,
           "border-burgundy/10": !active,
         },
@@ -251,6 +259,11 @@ export function GridTileImage({
           })}
           {...props}
         />
+      ) : null}
+      {isSold ? (
+        <div className="absolute top-3 left-3 z-10">
+          <SoldBadge />
+        </div>
       ) : null}
       {label ? (
         <Label

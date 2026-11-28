@@ -41,6 +41,7 @@ import {
   getProductRecommendationsQuery,
   getProductsQuery,
   getSitemapProductsQuery,
+  getVariantAvailabilityQuery,
   searchProductsQuery,
 } from "./queries/product";
 import {
@@ -71,6 +72,7 @@ import {
   ShopifyRemoveFromCartOperation,
   ShopifySitemapProductsOperation,
   ShopifyUpdateCartOperation,
+  ShopifyVariantAvailabilityOperation,
 } from "./types";
 
 const domain = process.env.SHOPIFY_STORE_DOMAIN
@@ -86,11 +88,13 @@ type ExtractVariables<T> = T extends { variables: object }
 
 export async function shopifyFetch<T>({
   apiVersion,
+  cache,
   headers,
   query,
   variables,
 }: {
   apiVersion?: string;
+  cache?: RequestCache;
   headers?: HeadersInit;
   query: string;
   variables?: ExtractVariables<T>;
@@ -105,6 +109,7 @@ export async function shopifyFetch<T>({
       : endpoint;
     const result = await fetch(requestEndpoint, {
       method: "POST",
+      cache,
       headers: {
         "Content-Type": "application/json",
         "X-Shopify-Storefront-Access-Token": key,
@@ -253,9 +258,30 @@ export async function createCart(): Promise<Cart> {
   return reshapeCart(res.body.data.cartCreate.cart);
 }
 
+export class CartItemUnavailableError extends Error {}
+
+export async function assertVariantsAvailableForSale(ids: string[]) {
+  const res = await shopifyFetch<ShopifyVariantAvailabilityOperation>({
+    query: getVariantAvailabilityQuery,
+    variables: { ids },
+    cache: "no-store",
+  });
+  const availableIds = new Set(
+    res.body.data.nodes
+      .filter((node) => node?.availableForSale === true)
+      .map((node) => node?.id),
+  );
+
+  if (ids.some((id) => !availableIds.has(id))) {
+    throw new CartItemUnavailableError("This item is no longer available.");
+  }
+}
+
 export async function addToCart(
   lines: { merchandiseId: string; quantity: number }[],
 ): Promise<Cart> {
+  await assertVariantsAvailableForSale(lines.map((line) => line.merchandiseId));
+
   const cartId = (await cookies()).get("cartId")?.value!;
   const res = await shopifyFetch<ShopifyAddToCartOperation>({
     query: addToCartMutation,
@@ -264,7 +290,11 @@ export async function addToCart(
       lines,
     },
   });
-  return reshapeCart(res.body.data.cartLinesAdd.cart);
+  const { cart, userErrors } = res.body.data.cartLinesAdd;
+  if (!cart || userErrors.length) {
+    throw new Error(userErrors[0]?.message ?? "Shopify did not return a cart.");
+  }
+  return reshapeCart(cart);
 }
 
 export async function removeFromCart(lineIds: string[]): Promise<Cart> {
@@ -292,7 +322,11 @@ export async function updateCart(
     },
   });
 
-  return reshapeCart(res.body.data.cartLinesUpdate.cart);
+  const { cart, userErrors } = res.body.data.cartLinesUpdate;
+  if (!cart || userErrors.length) {
+    throw new Error(userErrors[0]?.message ?? "Shopify did not return a cart.");
+  }
+  return reshapeCart(cart);
 }
 
 export async function getCart(): Promise<Cart | undefined> {
@@ -715,6 +749,7 @@ export async function revalidate(req: NextRequest): Promise<NextResponse> {
     "products/create",
     "products/delete",
     "products/update",
+    "inventory_levels/update",
   ];
   const topic = (await headers()).get("x-shopify-topic") || "unknown";
   const secret = req.nextUrl.searchParams.get("secret");

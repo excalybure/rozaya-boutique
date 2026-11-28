@@ -41,6 +41,7 @@ function ThreeItemGridItem({
             amount: item.priceRange.maxVariantPrice.amount,
             currencyCode: item.priceRange.maxVariantPrice.currencyCode,
           }}
+          isSold={!item.availableForSale}
         />
       </Link>
     </div>

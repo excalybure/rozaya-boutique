@@ -4,6 +4,7 @@ import Prose from "components/prose";
 import { getProductCondition } from "lib/merchant/feed";
 import { Product } from "lib/shopify/types";
 import type { ReactNode } from "react";
+import { SoldBadge } from "./sold-badge";
 import { VariantSelector } from "./variant-selector";
 
 const CONDITION_LABELS = {
@@ -23,6 +24,11 @@ export function ProductDescription({
   return (
     <>
       <div className="mb-6 flex flex-col border-b border-burgundy/15 pb-6">
+        {!product.availableForSale ? (
+          <div className="mb-3">
+            <SoldBadge />
+          </div>
+        ) : null}
         <h1 className="mb-3 font-heading text-4xl leading-tight text-burgundy sm:text-5xl">
           {product.title}
         </h1>
@@ -38,7 +44,9 @@ export function ProductDescription({
           </p>
         ) : null}
       </div>
-      <VariantSelector options={product.options} variants={product.variants} />
+      {product.availableForSale ? (
+        <VariantSelector options={product.options} variants={product.variants} />
+      ) : null}
       {product.descriptionHtml ? (
         <Prose className="mb-6" html={product.descriptionHtml} />
       ) : null}

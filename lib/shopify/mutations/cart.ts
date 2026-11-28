@@ -6,6 +6,9 @@ export const addToCartMutation = /* GraphQL */ `
       cart {
         ...cart
       }
+      userErrors {
+        message
+      }
     }
   }
   ${cartFragment}
@@ -27,6 +30,9 @@ export const editCartItemsMutation = /* GraphQL */ `
     cartLinesUpdate(cartId: $cartId, lines: $lines) {
       cart {
         ...cart
+      }
+      userErrors {
+        message
       }
     }
   }

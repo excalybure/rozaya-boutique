@@ -3,31 +3,35 @@
 import { PlusIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { addItem } from "components/cart/actions";
-import { Product, ProductVariant } from "lib/shopify/types";
+import type { Product } from "lib/shopify/types";
 import { useSearchParams } from "next/navigation";
 import { useActionState } from "react";
 import { useCart } from "./cart-context";
 
 function SubmitButton({
-  availableForSale,
-  selectedVariantId,
+  isSold,
+  hasSelection,
 }: {
-  availableForSale: boolean;
-  selectedVariantId: string | undefined;
+  isSold: boolean;
+  hasSelection: boolean;
 }) {
   const buttonClasses =
     "relative flex min-h-14 w-full items-center justify-center bg-burgundy px-5 py-4 font-sans text-xs font-semibold uppercase tracking-[0.18em] text-cream transition-colors";
   const disabledClasses = "cursor-not-allowed opacity-50 hover:bg-burgundy";
 
-  if (!availableForSale) {
+  if (isSold) {
     return (
-      <button disabled className={clsx(buttonClasses, disabledClasses)}>
-        Out Of Stock
+      <button
+        type="button"
+        disabled
+        className={clsx(buttonClasses, disabledClasses)}
+      >
+        Sold
       </button>
     );
   }
 
-  if (!selectedVariantId) {
+  if (!hasSelection) {
     return (
       <button
         aria-label="Please select an option"
@@ -63,30 +67,34 @@ export function AddToCart({ product }: { product: Product }) {
   const searchParams = useSearchParams();
   const [message, formAction] = useActionState(addItem, null);
 
-  const variant = variants.find((variant: ProductVariant) =>
-    variant.selectedOptions.every(
-      (option) => option.value === searchParams.get(option.name.toLowerCase()),
-    ),
-  );
-  const defaultVariantId = variants.length === 1 ? variants[0]?.id : undefined;
-  const selectedVariantId = variant?.id || defaultVariantId;
-  const addItemAction = formAction.bind(null, selectedVariantId);
-  const finalVariant = variants.find(
-    (variant) => variant.id === selectedVariantId,
-  )!;
+  const variant =
+    variants.length === 1
+      ? variants[0]
+      : variants.find((variant) =>
+          variant.selectedOptions.every(
+            (option) =>
+              option.value === searchParams.get(option.name.toLowerCase()),
+          ),
+        );
+
+  if (!availableForSale || variant?.availableForSale === false) {
+    return <SubmitButton isSold hasSelection={Boolean(variant)} />;
+  }
 
   return (
     <form
       action={async () => {
-        addCartItem(finalVariant, product);
-        addItemAction();
+        if (!variant?.availableForSale) return;
+
+        addCartItem(variant, product);
+        formAction(variant.id);
       }}
     >
-      <SubmitButton
-        availableForSale={availableForSale}
-        selectedVariantId={selectedVariantId}
-      />
-      <p aria-live="polite" className="sr-only" role="status">
+      <SubmitButton isSold={false} hasSelection={Boolean(variant)} />
+      <p
+        className={message ? "mt-2 text-sm text-burgundy" : "sr-only"}
+        role="status"
+      >
         {message}
       </p>
     </form>

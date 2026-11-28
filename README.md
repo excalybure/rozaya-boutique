@@ -54,6 +54,8 @@ With the server running and Shopify configured:
    retain the filters. Then open a product detail page.
 4. For an available product, select any required options, add it to the cart,
    and check quantity changes and removal.
+5. Find a sold product in the catalog. Its card and detail page should say
+   **Sold**, and it should not be possible to add it to the cart.
 
 Local development uses the Shopify store configured in `.env.local`, not a
 separate test catalog. Do not complete checkout with real payment details when
@@ -113,6 +115,26 @@ the Shopify **Jewelry Sets** product category, so no separate collection is
 required. Set the product category (not the product type) and make sure the
 product is visible to Headless and included in `all-jewelry` for it to appear
 on the fallback page.
+
+### Sold products
+
+Keep sold products active, published to the Headless sales channel, and in their
+collections. Remove any collection rules that require positive inventory, and
+leave **Continue selling when out of stock** turned off for tracked variants.
+When Shopify reports that no variants are available, the storefront keeps the
+product visible with a **Sold** badge and disables purchasing. Products tagged
+`nextjs-frontend-hidden` are still excluded from listings.
+
+For timely badge updates when inventory changes, send Shopify's
+`inventory_levels/update` webhook to the storefront's existing
+`/api/revalidate?secret=...` endpoint. Cart adds check availability with Shopify
+even if a shopper still has an older product page open.
+
+To run the read-only browser regression, set `SOLD_TEST_BASE_URL`,
+`SOLD_TEST_PRODUCT_PATH` (a sold item's `/product/...` URL path), and
+`SOLD_TEST_PLAYWRIGHT_MODULE` (an external Playwright `index.mjs`). Set
+`SOLD_TEST_LISTING_PATH` if that item is not on the first `/search` page.
+Run `node --test tests/sold-products-storefront.test.mjs`.
 
 ### Product images
 

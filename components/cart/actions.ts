@@ -3,6 +3,8 @@
 import { TAGS } from "lib/constants";
 import {
   addToCart,
+  assertVariantsAvailableForSale,
+  CartItemUnavailableError,
   createCart,
   getCart,
   removeFromCart,
@@ -24,7 +26,9 @@ export async function addItem(
     await addToCart([{ merchandiseId: selectedVariantId, quantity: 1 }]);
     updateTag(TAGS.cart);
   } catch (e) {
-    return "Error adding item to cart";
+    return e instanceof CartItemUnavailableError
+      ? e.message
+      : "Error adding item to cart";
   }
 }
 
@@ -75,6 +79,9 @@ export async function updateItemQuantity(
       if (quantity === 0) {
         await removeFromCart([lineItem.id]);
       } else {
+        if (quantity > lineItem.quantity) {
+          await assertVariantsAvailableForSale([merchandiseId]);
+        }
         await updateCart([
           {
             id: lineItem.id,
@@ -90,6 +97,8 @@ export async function updateItemQuantity(
 
     updateTag(TAGS.cart);
   } catch (e) {
+    if (e instanceof CartItemUnavailableError) return e.message;
+
     console.error(e);
     return "Error updating item quantity";
   }

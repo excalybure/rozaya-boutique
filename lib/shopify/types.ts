@@ -189,11 +189,14 @@ export type ShopifyCreateCartOperation = {
   data: { cartCreate: { cart: ShopifyCart } };
 };
 
+type CartLinesMutationResult = {
+  cart: ShopifyCart | null;
+  userErrors: { message: string }[];
+};
+
 export type ShopifyAddToCartOperation = {
   data: {
-    cartLinesAdd: {
-      cart: ShopifyCart;
-    };
+    cartLinesAdd: CartLinesMutationResult;
   };
   variables: {
     cartId: string;
@@ -218,9 +221,7 @@ export type ShopifyRemoveFromCartOperation = {
 
 export type ShopifyUpdateCartOperation = {
   data: {
-    cartLinesUpdate: {
-      cart: ShopifyCart;
-    };
+    cartLinesUpdate: CartLinesMutationResult;
   };
   variables: {
     cartId: string;
@@ -298,6 +299,13 @@ export type ShopifyProductRecommendationsOperation = {
   variables: {
     productId: string;
   };
+};
+
+export type ShopifyVariantAvailabilityOperation = {
+  data: {
+    nodes: (Partial<Pick<ProductVariant, "id" | "availableForSale">> | null)[];
+  };
+  variables: { ids: string[] };
 };
 
 type ProductPageConnection = Partial<Connection<ShopifyProduct>> & {
