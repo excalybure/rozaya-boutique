@@ -1,6 +1,7 @@
 import { AddToCart } from "components/cart/add-to-cart";
 import Price from "components/price";
 import Prose from "components/prose";
+import { ReturnPolicyNotice } from "components/return-policy-notice";
 import { getProductCondition } from "lib/merchant/feed";
 import { Product } from "lib/shopify/types";
 import type { ReactNode } from "react";
@@ -45,13 +46,19 @@ export function ProductDescription({
         ) : null}
       </div>
       {product.availableForSale ? (
-        <VariantSelector options={product.options} variants={product.variants} />
+        <VariantSelector
+          options={product.options}
+          variants={product.variants}
+        />
       ) : null}
       {product.descriptionHtml ? (
         <Prose className="mb-6" html={product.descriptionHtml} />
       ) : null}
       {children}
-      <AddToCart product={product} />
+      <div className="space-y-3">
+        {product.availableForSale ? <ReturnPolicyNotice /> : null}
+        <AddToCart product={product} />
+      </div>
     </>
   );
 }

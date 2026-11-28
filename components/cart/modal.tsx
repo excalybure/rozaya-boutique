@@ -5,6 +5,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { ShoppingCartIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import LoadingDots from "components/loading-dots";
 import Price from "components/price";
+import { ReturnPolicyNotice } from "components/return-policy-notice";
 import { ShopifyImage } from "components/shopify-image";
 import { DEFAULT_OPTION } from "lib/constants";
 import { createUrl } from "lib/utils";
@@ -90,7 +91,7 @@ export default function CartModal() {
                   </p>
                 </div>
               ) : (
-                <div className="flex h-full flex-col justify-between overflow-hidden p-1">
+                <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-1">
                   <ul className="grow overflow-auto py-4">
                     {cart.lines
                       .sort((a, b) =>
@@ -193,7 +194,7 @@ export default function CartModal() {
                         );
                       })}
                   </ul>
-                  <div className="py-4 font-sans text-xs text-taupe">
+                  <div className="shrink-0 py-4 font-sans text-xs text-taupe">
                     <div className="mb-3 flex items-center justify-between border-b border-burgundy/15 pb-2">
                       <p>Taxes</p>
                       <Price
@@ -215,7 +216,11 @@ export default function CartModal() {
                       />
                     </div>
                   </div>
-                  <form action={redirectToCheckout}>
+                  <form
+                    action={redirectToCheckout}
+                    className="shrink-0 space-y-3"
+                  >
+                    <ReturnPolicyNotice onNavigate={closeCart} />
                     <CheckoutButton />
                   </form>
                 </div>

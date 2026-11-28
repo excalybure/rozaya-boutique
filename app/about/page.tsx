@@ -8,7 +8,8 @@ import type { ReactNode } from "react";
 const canonical = getCanonicalUrl("/about");
 const description =
   "From a grandmother’s jewelry box to estate sales and flea markets: the story behind Rozaya Boutique and how I choose and check every vintage piece.";
-const returnsPolicy = "refund-policy";
+const policyLinkClassName =
+  "font-semibold text-burgundy underline decoration-gold-dark underline-offset-4 transition-colors hover:text-burgundy-light";
 
 export const metadata: Metadata = {
   title: { absolute: "About Rozaya Boutique" },
@@ -116,18 +117,29 @@ export default function AboutPage() {
               images.
             </li>
             <li>
-              30-day returns on eligible full-price items (see the{" "}
+              I don’t accept change-of-mind returns except where required by
+              law. If there’s a problem with your order, see{" "}
               <Link
-                href={`/policies/${returnsPolicy}`}
-                className="font-semibold text-burgundy underline decoration-gold-dark underline-offset-4 transition-colors hover:text-burgundy-light"
+                href="/policies/refund-policy"
+                className={policyLinkClassName}
               >
-                {policyPages[returnsPolicy].title} policy
+                {policyPages["refund-policy"].title}
               </Link>
-              ).
+              .
             </li>
             <li>
-              If an independent appraisal shows a piece isn’t what I described,
-              you get a full refund.
+              If a written independent appraisal finds that a piece is
+              materially different from its description, send me the report
+              within 30 days of delivery. If I confirm the difference, I’ll
+              issue a full refund when you return the piece in the condition you
+              received it. See section 10 of the{" "}
+              <Link
+                href="/policies/legal-notice"
+                className={policyLinkClassName}
+              >
+                {policyPages["legal-notice"].title}
+              </Link>
+              .
             </li>
           </ul>
         </section>
